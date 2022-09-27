@@ -5,13 +5,13 @@ import { AppService } from './app.service';
 // nest js defines the headers for the requests automatically
 // but we can define our own as well
 
-// your-domain.com/test/hello
+// your-domain.com
 
-@Controller('test')
+@Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get('hello')
+  @Get()
   @Header('Content-Type', 'text/plain')
   getHello(): string {
     return this.appService.getHello();
