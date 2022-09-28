@@ -10,6 +10,8 @@ import { ServiceAccount } from 'firebase-admin';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService: ConfigService = app.get(ConfigService);
+  const port: string = configService.get<string>('PORT');
+  const database_url: string = configService.get<string>('DB_URL');
   // Set the config options
   const adminConfig: ServiceAccount = {
     projectId: configService.get<string>('FIREBASE_PROJECT_ID'),
@@ -22,11 +24,13 @@ async function bootstrap() {
   // todo : the database URL to be changes of Course
   admin.initializeApp({
     credential: admin.credential.cert(adminConfig),
-    databaseURL: 'https://xxxxx.firebaseio.com',
+    databaseURL: database_url,
   });
 
   app.enableCors();
 
-  await app.listen(configService.get<string>('API_PORT') || 4000);
+  await app.listen(port, () =>
+    console.log('Server running on http://localhost:' + port),
+  );
 }
 bootstrap();
