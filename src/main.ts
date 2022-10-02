@@ -7,10 +7,13 @@ import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
 import { ServiceAccount } from 'firebase-admin';
 
+// import { initializeApp, applicationDefault } from 'firebase-admin/app';
+
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService: ConfigService = app.get(ConfigService);
-  const port: string = configService.get<string>('PORT');
+  const port: string = configService.get<string>('API_PORT');
   const database_url: string = configService.get<string>('DB_URL');
   // Set the config options
   const adminConfig: ServiceAccount = {
@@ -22,10 +25,17 @@ async function bootstrap() {
   };
   // Initialize the firebase admin app
   // todo : the database URL to be changes of Course
+
   admin.initializeApp({
     credential: admin.credential.cert(adminConfig),
     databaseURL: database_url,
   });
+
+  
+  // initializeApp({
+  //   credential: applicationDefault(),
+  //   projectId: 'corei14-apprenticeship-app',
+  // });
 
   app.enableCors();
 
