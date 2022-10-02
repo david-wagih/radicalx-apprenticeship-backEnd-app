@@ -9,7 +9,6 @@ import { ServiceAccount } from 'firebase-admin';
 
 // import { initializeApp, applicationDefault } from 'firebase-admin/app';
 
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService: ConfigService = app.get(ConfigService);
@@ -24,18 +23,12 @@ async function bootstrap() {
     clientEmail: configService.get<string>('FIREBASE_CLIENT_EMAIL'),
   };
   // Initialize the firebase admin app
-  // todo : the database URL to be changes of Course
+  // todo : fix the database_url issue
 
   admin.initializeApp({
     credential: admin.credential.cert(adminConfig),
     databaseURL: database_url,
   });
-
-  
-  // initializeApp({
-  //   credential: applicationDefault(),
-  //   projectId: 'corei14-apprenticeship-app',
-  // });
 
   app.enableCors();
 
