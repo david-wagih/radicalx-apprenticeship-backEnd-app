@@ -4,12 +4,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './api/auth/auth.module';
 import { DbModule } from './api/db/db.module';
-import { StorageModule } from './api/storage/storage.module';
 
 // this is really important
 
 @Module({
-  imports: [ConfigModule.forRoot(), AuthModule, DbModule, StorageModule],
+  imports: [ConfigModule.forRoot(), AuthModule, DbModule],
   controllers: [AppController],
   providers: [AppService],
 })
