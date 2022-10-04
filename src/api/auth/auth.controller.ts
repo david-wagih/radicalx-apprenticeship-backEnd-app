@@ -16,6 +16,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   // User Registration
+
+  // testing the validationPipe
+  // @Post('TestRegister')
+  // TestRegisterVerification(@Body() authDto: CreateAuthDto){
+  //   return 'passed'
+  // }
+  
   @Get('register')
   getRegistrationPage() {
     return this.authService.getRegistrationPage();

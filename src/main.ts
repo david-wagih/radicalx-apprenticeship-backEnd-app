@@ -3,9 +3,11 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
 import { ServiceAccount } from 'firebase-admin';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ValidationPipe());
   const configService: ConfigService = app.get(ConfigService);
   const port: string = configService.get<string>('API_PORT');
   const database_url: string = configService.get<string>('DB_URL');
