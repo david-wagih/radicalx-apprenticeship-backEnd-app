@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { Auth } from 'firebase-admin/lib/auth/auth';
 
-const auth: Auth = admin.auth();
 @Injectable()
 export class AuthService {
   getRegistrationPage() {
@@ -21,7 +19,8 @@ export class AuthService {
     photoURL: string,
     disabled: boolean,
   ) {
-    auth
+    admin
+      .auth()
       .createUser({
         uid: uid,
         email: email,
@@ -47,7 +46,8 @@ export class AuthService {
     // todo: Add social logins
     const token = req.headers.get('Authorization');
     if (token != null && token != '') {
-      auth
+      admin
+        .auth()
         .verifyIdToken(token.replace('Bearer', ''))
         .then(async (decodedToken) => {
           const user = {
@@ -80,7 +80,8 @@ export class AuthService {
     photoURL: string,
     disabled: boolean,
   ) {
-    auth
+    admin
+      .auth()
       .updateUser(uid, {
         email: email,
         emailVerified: emailVerified,
@@ -105,7 +106,8 @@ export class AuthService {
 
   removeUser(uid: string) {
     // todo: authenticate user
-    auth
+    admin
+      .auth()
       .deleteUser(uid)
       .then(() => {
         return 'Deleted user ' + uid + 'sussessfully';
