@@ -5,6 +5,7 @@ import * as admin from 'firebase-admin';
 export class AuthService {
   getRegistrationPage() {
     //Add registration page
+    console.log('This should be the registration page');
     return 'This should be the registration page';
   }
 
@@ -32,6 +33,7 @@ export class AuthService {
         disabled: disabled,
       })
       .then((userRecord) => {
+        console.log('Created user ' + userRecord.displayName + ' successfully');
         return 'Created user ' + userRecord.displayName + ' successfully';
       }) //todo: add email verification
       .catch((error) => console.error(error));
@@ -39,6 +41,7 @@ export class AuthService {
 
   getLoginPage() {
     //todo: add login page
+    console.log('This should be the registration page');
     return 'this should be the login page';
   }
 
@@ -57,14 +60,15 @@ export class AuthService {
           return user;
         })
         .catch((err) => {
-          return 'Error: ' + err.message;
+          console.error('Error: ' + err.message);
         });
     }
-    return 'Error! Header is empty';
+    console.error('Error! Header is empty');
   }
 
   getUpdatePage(uid: string) {
     // todo: add update page
+    console.log('this should be the update page for ' + uid);
     return 'this should be the update page for ' + uid;
   }
 
@@ -92,6 +96,7 @@ export class AuthService {
         disabled: disabled,
       })
       .then((userRecord) => {
+        console.log('Successfully updated user ' + userRecord.displayName);
         return 'Successfully updated user ' + userRecord.displayName;
       })
       .catch((error) => {
@@ -101,6 +106,7 @@ export class AuthService {
 
   getRemovePage(uid: string) {
     // todo: add the remove page
+    console.log('this should be the delete user for ' + uid);
     return 'this should be the delete user for ' + uid;
   }
 
@@ -110,6 +116,7 @@ export class AuthService {
       .auth()
       .deleteUser(uid)
       .then(() => {
+        console.log('Deleted user ' + uid + ' successfully');
         return 'Deleted user ' + uid + 'sussessfully';
       })
       .catch((error) => {
