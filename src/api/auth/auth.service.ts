@@ -86,7 +86,6 @@ export class AuthService {
   ) {
     admin
       .auth()
-      .admin.auth()
       .updateUser(uid, {
         email: email,
         emailVerified: emailVerified,
