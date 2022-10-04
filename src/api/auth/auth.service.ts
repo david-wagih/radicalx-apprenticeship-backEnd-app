@@ -84,9 +84,9 @@ export class AuthService {
     photoURL: string,
     disabled: boolean,
   ) {
-    admin.auth().
     admin
       .auth()
+      .admin.auth()
       .updateUser(uid, {
         email: email,
         emailVerified: emailVerified,
