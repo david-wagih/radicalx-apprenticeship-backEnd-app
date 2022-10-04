@@ -4,7 +4,7 @@ import * as admin from 'firebase-admin';
 @Injectable()
 export class AuthService {
   getRegistrationPage() {
-    //Add registration page
+    //Add registration page from Front-end team
     console.log('This should be the registration page');
     return 'This should be the registration page';
   }
@@ -84,6 +84,7 @@ export class AuthService {
     photoURL: string,
     disabled: boolean,
   ) {
+    admin.auth().
     admin
       .auth()
       .updateUser(uid, {

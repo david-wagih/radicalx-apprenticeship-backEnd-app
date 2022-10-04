@@ -15,7 +15,7 @@ import { UpdateDbDto } from './dto/update-db.dto';
 export class DbController {
   constructor(private readonly dbService: DbService) {}
 
-  @Post()
+  @Post('add')
   create(@Body() createDbDto: CreateDbDto) {
     return this.dbService.create(createDbDto);
   }
