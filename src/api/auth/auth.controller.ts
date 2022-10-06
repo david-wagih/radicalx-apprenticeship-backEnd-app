@@ -84,4 +84,11 @@ export class AuthController {
   removeUser(@Body() authDto: UpdateAuthDto) {
     return this.authService.removeUser(authDto.uid);
   }
+
+  @Post('resetPass') 
+  resetPass(@Body() email: string) {
+    return this.authService.sendResetMail(email);
+    //this.authService.sendMail(email);
+  }
 }
+
