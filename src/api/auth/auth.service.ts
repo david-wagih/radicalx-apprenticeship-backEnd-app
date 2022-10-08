@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
+import { app, firestore } from 'firebase-admin';
+// import { firestore } from 'firebase-admin';
+// import { Auth } from 'firebase-admin/lib/auth/auth';
+import { AuthCredential, getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { AuthController } from './auth.controller';
+import { Auth } from './entities/auth.entity';
 
 @Injectable()
 export class AuthService {
@@ -45,26 +51,55 @@ export class AuthService {
     return 'this should be the login page';
   }
 
-  loginUser(req: Request, uid: string, password: string) {
-    // todo: Add social logins
-    const token = req.headers.get('Authorization');
-    if (token != null && token != '') {
-      admin
-        .auth()
-        .verifyIdToken(token.replace('Bearer', ''))
-        .then(async (decodedToken) => {
-          const user = {
-            uid: decodedToken.uid,
-          };
-          req['user'] = user;
-          return user;
+
+  VerifyUser(req: Request, email: string, password: string) {
+    const auth = getAuth();
+    signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {         // Signed in 
+      console.log("Logged in Successfully");
+      const user = userCredential.user;
+
+      admin.auth()
+        .createCustomToken(user.uid)
+        .then((customToken) => {
+            return customToken;          // Send token back to client
         })
-        .catch((err) => {
-          console.error('Error: ' + err.message);
+        .catch((error) => {
+          console.log('Error creating custom token:', error);
         });
-    }
-    console.error('Error! Header is empty');
+     
+    })
+    .catch((error) => {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+    });
   }
+
+
+
+
+
+
+  // loginUser(req: Request, uid: string, password: string) {
+  //   // todo: Add social logins
+  //   const token = req.headers.get('Authorization');
+  //   if (token != null && token != '') {
+  //     admin
+  //       .auth()
+  //       .verifyIdToken(token.replace('Bearer', ''))
+  //       .then(async (decodedToken) => {
+  //         const user = {
+  //           uid: decodedToken.uid,
+  //         };
+  //         req['user'] = user;
+  //         return user;
+  //       })
+  //       .catch((err) => {
+  //         console.error('Error: ' + err.message);
+  //       });
+  //   }
+  //   console.error('Error! Header is empty');
+  // }
 
   getUpdatePage(uid: string) {
     // todo: add update page
