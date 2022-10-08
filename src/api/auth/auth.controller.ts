@@ -22,7 +22,7 @@ export class AuthController {
   // TestRegisterVerification(@Body() authDto: CreateAuthDto){
   //   return 'passed'
   // }
-  
+
   @Get('register')
   getRegistrationPage() {
     return this.authService.getRegistrationPage();
@@ -85,10 +85,9 @@ export class AuthController {
     return this.authService.removeUser(authDto.uid);
   }
 
-  @Post('resetPass') 
+  @Post('resetPass')
   resetPass(@Body() email: string) {
     return this.authService.sendResetMail(email);
     //this.authService.sendMail(email);
   }
 }
-

@@ -1,9 +1,4 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsMobilePhone,
-  IsBoolean
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsMobilePhone, IsBoolean } from 'class-validator';
 
 export class CreateAuthDto {
   uid: string;

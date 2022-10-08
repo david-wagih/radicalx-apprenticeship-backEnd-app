@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import {getAuth,sendPasswordResetEmail } from "firebase/auth";
-import { link } from 'fs';
+import nodemailer from 'nodemailer';
 
 @Injectable()
 export class AuthService {
@@ -125,65 +124,53 @@ export class AuthService {
         console.error('Error deleting user:', error);
       });
   }
- 
 
-    sendResetMail(email: any)
-    { 
-        //console.log(email);
-        admin.auth().generatePasswordResetLink(email.email)
-            .then((link) => {
-                //console.log(link);
-                this.sendMail(email.email, link);
-                
-            })
-            .catch((error) => {
-              console.error('Error sending email', error);
-              return error;
-            });
-    }
-
-    sendMail(email:string, link: string)
-    {
-      const functions = require('firebase-functions');
-      const nodemailer = require('nodemailer');
-
-      let mailTransport = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: 'CoreI14Internships@gmail.com',
-            pass: 'tltreznwjzejufxc'
-        }
+  sendResetMail(email: any) {
+    //console.log(email);
+    admin
+      .auth()
+      .generatePasswordResetLink(email.email)
+      .then((link) => {
+        //console.log(link);
+        this.sendMail(email.email, link);
+      })
+      .catch((error) => {
+        console.error('Error sending email', error);
+        return error;
       });
+  }
 
+  sendMail(email: string, link: string) {
+    const mailTransport = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'CoreI14Internships@gmail.com',
+        pass: 'tltreznwjzejufxc',
+      },
+    });
 
-      const recipientEmail = email;
-      console.log('recipientEmail: ' + recipientEmail);
-  
-      const mailOptions = {
-          from: 'corei14 <CoreI14Internships@gmail.com>',
-          to: recipientEmail,
-          subject: 'RadicalX-Apprenticeship Password Reset',
-          html:
-             `<p style="font-size: 18px;">Reset your account password</p>
+    const recipientEmail = email;
+    console.log('recipientEmail: ' + recipientEmail);
+
+    const mailOptions = {
+      from: 'corei14 <CoreI14Internships@gmail.com>',
+      to: recipientEmail,
+      subject: 'RadicalX-Apprenticeship Password Reset',
+      html: `<p style="font-size: 18px;">Reset your account password</p>
               <p style="font-size: 12px;">You requested a password reset.</p>
               <p style="font-size: 12px;">Please use the link below to reset you password:</p> 
               <a href="${link}">Reset Password Link</a>
               <p style="font-size: 12px;">Best Regards,</p>
-            `// email content in HTML
-      };
-  
-  
-      return mailTransport.sendMail(mailOptions).then(() => {
-          console.log('email sent to:', recipientEmail);
-          return new Promise(((resolve, reject) => {
-         
-              return resolve({
-                  result: 'email sent to: ' + recipientEmail
-              });
-          }));
+            `, // email content in HTML
+    };
+
+    return mailTransport.sendMail(mailOptions).then(() => {
+      console.log('email sent to:', recipientEmail);
+      return new Promise((resolve, reject) => {
+        return resolve({
+          result: 'email sent to: ' + recipientEmail,
+        });
       });
-      
-    }
-
-
+    });
+  }
 }
