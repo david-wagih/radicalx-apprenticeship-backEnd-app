@@ -6,6 +6,8 @@ import { app, firestore } from 'firebase-admin';
 import { AuthCredential, getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { AuthController } from './auth.controller';
 import { Auth } from './entities/auth.entity';
+import nodemailer from 'nodemailer';
+
 
 @Injectable()
 export class AuthService {
@@ -152,10 +154,59 @@ export class AuthService {
       .deleteUser(uid)
       .then(() => {
         console.log('Deleted user ' + uid + ' successfully');
-        return 'Deleted user ' + uid + 'sussessfully';
+        return 'Deleted user ' + uid + 'successfully';
       })
       .catch((error) => {
         console.error('Error deleting user:', error);
       });
+  }
+
+  sendResetMail(email: any) {
+    //console.log(email);
+    admin
+      .auth()
+      .generatePasswordResetLink(email.email)
+      .then((link) => {
+        //console.log(link);
+        this.sendMail(email.email, link);
+      })
+      .catch((error) => {
+        console.error('Error sending email', error);
+        return error;
+      });
+  }
+
+  sendMail(email: string, link: string) {
+    const mailTransport = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'CoreI14Internships@gmail.com',
+        pass: 'tltreznwjzejufxc',
+      },
+    });
+
+    const recipientEmail = email;
+    console.log('recipientEmail: ' + recipientEmail);
+
+    const mailOptions = {
+      from: 'corei14 <CoreI14Internships@gmail.com>',
+      to: recipientEmail,
+      subject: 'RadicalX-Apprenticeship Password Reset',
+      html: `<p style="font-size: 18px;">Reset your account password</p>
+              <p style="font-size: 12px;">You requested a password reset.</p>
+              <p style="font-size: 12px;">Please use the link below to reset you password:</p> 
+              <a href="${link}">Reset Password Link</a>
+              <p style="font-size: 12px;">Best Regards,</p>
+            `, // email content in HTML
+    };
+
+    return mailTransport.sendMail(mailOptions).then(() => {
+      console.log('email sent to:', recipientEmail);
+      return new Promise((resolve, reject) => {
+        return resolve({
+          result: 'email sent to: ' + recipientEmail,
+        });
+      });
+    });
   }
 }
