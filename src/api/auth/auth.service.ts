@@ -140,7 +140,7 @@ export class AuthService {
       });
   }
 
-  sendMail(email: string, link: string) {
+  async sendMail(email: string, link: string) {
     const mailTransport = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -164,12 +164,11 @@ export class AuthService {
             `, // email content in HTML
     };
 
-    return mailTransport.sendMail(mailOptions).then(() => {
-      console.log('email sent to:', recipientEmail);
-      return new Promise((resolve, reject) => {
-        return resolve({
-          result: 'email sent to: ' + recipientEmail,
-        });
+    await mailTransport.sendMail(mailOptions);
+    console.log('email sent to:', recipientEmail);
+    return await new Promise((resolve, reject) => {
+      return resolve({
+        result: 'email sent to: ' + recipientEmail,
       });
     });
   }
