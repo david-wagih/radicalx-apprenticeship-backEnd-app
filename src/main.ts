@@ -22,6 +22,7 @@ async function bootstrap() {
   admin.initializeApp({
     credential: admin.credential.cert(adminConfig),
     databaseURL: database_url,
+    storageBucket: "corei14-apprenticeship-app.appspot.com"
   });
 
   app.enableCors();
