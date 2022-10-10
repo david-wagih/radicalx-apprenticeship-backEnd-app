@@ -30,7 +30,7 @@ export class AuthController {
 
   @Post('register')
   registerUser(@Body() authDto: CreateAuthDto) {
-    return this.authService.registerUser(
+    return this.authService.registerUser( //TODO: Make fields optional if not available
       authDto.uid,
       authDto.email,
       authDto.emailVerified,
@@ -49,8 +49,8 @@ export class AuthController {
   }
 
   @Post('login') //todo: Get data from DTO
-  VerifyUser(@Body() authDto: UpdateAuthDto) {
-    return this.authService.VerifyUser(authDto.email, authDto.password);
+  LoginUser(@Body() authDto: UpdateAuthDto) {
+    return this.authService.LoginUser(authDto.email, authDto.password);
   }
 
   // User Update Account Data

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
+import { AuthCredential, getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, browserLocalPersistence, setPersistence } from "firebase/auth";
 //import { app, firestore } from 'firebase-admin';
 // import { Auth } from 'firebase-admin/lib/auth/auth';
-import { AuthCredential, getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { AuthController } from './auth.controller';
 import { Auth } from './entities/auth.entity';
 import nodemailer from 'nodemailer';
@@ -19,7 +19,6 @@ export class AuthService {
   }
 
   registerUser(
-    // todo: set arguments as optional
     uid: string,
     email: string,
     emailVerified: boolean,
@@ -54,59 +53,39 @@ export class AuthService {
     return 'this should be the login page';
   }
 
-
-  VerifyUser(email: string, password: string) {
-    const auth = getAuth();  //globalThis.firebase
-    signInWithEmailAndPassword(getAuth() , email, password)
-    .then((userCredential) => {         // Signed in 
-      console.log("Logged in Successfully"); //TODO: Is email verified? If not, sent verification email
-      const user = userCredential.user;
-
-      console.log(user);
-
-      admin.auth()
-        .createCustomToken(user.uid , user.getIdToken)
-        .then((customToken) => {
-            //console.log(customToken);
-            return customToken;          // Send token back to client
+  LoginUser(email: string, password: string) {
+    if(this.checkUser() != true){
+      const auth = getAuth();
+      setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        signInWithEmailAndPassword(auth , email, password)
+        .then((userCredential) => {         // Signed in 
+          //sendEmailVerification(); //TODO: Is email verified? If not, sent verification email
+          console.log("Logged in Successfully"); 
+          const user = userCredential.user; // todo: save user session in browser storage to avoid logout if server restarts
         })
-        .catch((error) => {
-          console.log('Error creating custom token:', error);
-        });
-     
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(errorMessage);
-    });
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorMessage);
+      });  
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+  });
+    } 
+          // admin.auth()
+          //   .createCustomToken(user.uid)
+          //   .then((customToken) => {
+          //       //console.log(customToken);
+          //       return customToken;          // Send token back to client
+          //   })
+          //   .catch((error) => {
+          //     console.log('Error creating custom token:', error);
+          //   });
   }
 
-
-
-
-
-
-  // loginUser(req: Request, uid: string, password: string) {
-  //   // todo: Add social logins
-  //   const token = req.headers.get('Authorization');
-  //   if (token != null && token != '') {
-  //     admin
-  //       .auth()
-  //       .verifyIdToken(token.replace('Bearer', ''))
-  //       .then(async (decodedToken) => {
-  //         const user = {
-  //           uid: decodedToken.uid,
-  //         };
-  //         req['user'] = user;
-  //         return user;
-  //       })
-  //       .catch((err) => {
-  //         console.error('Error: ' + err.message);
-  //       });
-  //   }
-  //   console.error('Error! Header is empty');
-  // }
 
   getUpdatePage(uid: string) {
     // todo: add update page
@@ -126,7 +105,8 @@ export class AuthService {
     photoURL: string,
     disabled: boolean,
   ) {
-    admin
+    if(this.checkUser()){
+      admin
       .auth()
       .updateUser(uid, {
         email: email,
@@ -144,6 +124,8 @@ export class AuthService {
       .catch((error) => {
         console.error('Error updating user:', error);
       });
+    }
+    
   }
 
   getRemovePage(uid: string) {
@@ -214,4 +196,17 @@ export class AuthService {
       });
     });
   }
+
+  checkUser(){
+    const user = getAuth().currentUser;
+    if (user) {
+      console.log("User already logged in");
+      return true;
+  
+    } else {
+      console.log("User needs to log in");
+      return false;
+    // No user is signed in.
+    }
+}
 }
