@@ -49,8 +49,8 @@ export class AuthController {
   }
 
   @Post('login') //todo: Get data from DTO
-  VerifyUser(@Req() req: Request, @Body() authDto: UpdateAuthDto) {
-    return this.authService.VerifyUser(req, authDto.email, authDto.password);
+  VerifyUser(@Body() authDto: UpdateAuthDto) {
+    return this.authService.VerifyUser(authDto.email, authDto.password);
   }
 
   // User Update Account Data

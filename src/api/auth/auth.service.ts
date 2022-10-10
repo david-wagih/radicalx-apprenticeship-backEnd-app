@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { app, firestore } from 'firebase-admin';
-// import { firestore } from 'firebase-admin';
+//import { app, firestore } from 'firebase-admin';
 // import { Auth } from 'firebase-admin/lib/auth/auth';
-import { AuthCredential, getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { AuthCredential, getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { AuthController } from './auth.controller';
 import { Auth } from './entities/auth.entity';
 import nodemailer from 'nodemailer';
+import { app } from 'firebase-admin';
+
 
 
 @Injectable()
@@ -54,16 +55,19 @@ export class AuthService {
   }
 
 
-  VerifyUser(req: Request, email: string, password: string) {
-    const auth = getAuth();
-    signInWithEmailAndPassword(auth, email, password)
+  VerifyUser(email: string, password: string) {
+    const auth = getAuth();  //globalThis.firebase
+    signInWithEmailAndPassword(getAuth() , email, password)
     .then((userCredential) => {         // Signed in 
-      console.log("Logged in Successfully");
+      console.log("Logged in Successfully"); //TODO: Is email verified? If not, sent verification email
       const user = userCredential.user;
 
+      console.log(user);
+
       admin.auth()
-        .createCustomToken(user.uid)
+        .createCustomToken(user.uid , user.getIdToken)
         .then((customToken) => {
+            //console.log(customToken);
             return customToken;          // Send token back to client
         })
         .catch((error) => {
@@ -74,6 +78,7 @@ export class AuthService {
     .catch((error) => {
       const errorCode = error.code;
       const errorMessage = error.message;
+      console.log(errorMessage);
     });
   }
 
