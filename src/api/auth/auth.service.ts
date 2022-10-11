@@ -258,7 +258,7 @@ export class AuthService {
       });
   }
 
-  sendMail(email: string, link: string) {
+  async sendMail(email: string, link: string) {
     const mailTransport = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -288,6 +288,7 @@ export class AuthService {
         return resolve({
           result: 'email sent to: ' + recipientEmail,
         });
+
       });
     });
   }
