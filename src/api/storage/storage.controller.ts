@@ -11,7 +11,7 @@ import { StorageService } from './storage.service';
 import { CreateStorageDto } from './dto/create-storage.dto';
 import { UpdateStorageDto } from './dto/update-storage.dto';
 
-@Controller({ host: 'api.localhost', path: 'storage' })
+@Controller({ host: 'localhost', path: 'storage' })
 export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 

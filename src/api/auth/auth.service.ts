@@ -26,34 +26,22 @@ export class AuthService {
     phoneNumber: string,
     displayName: string,
     photoURL: string,
+    emailVerified: boolean,
+    disabled: boolean,
   ) {
     admin
       .auth()
       .createUser({
         email: email,
-        emailVerified: false,
+        emailVerified: emailVerified,
         phoneNumber: phoneNumber,
         password: password,
         displayName: displayName,
         photoURL: photoURL,
-        disabled: false,
+        disabled: disabled,
       })
       .then((userRecord) => {
-        const auth = getAuth();
-        sendEmailVerification(auth.currentUser)
-          .then(() => {
-            console.log(
-              'a verification email has been sent to ' +
-                userRecord.email +
-                '. Activate your account so you can use it',
-            );
-            return (
-              'a verification email has been sent to ' +
-              userRecord.email +
-              '. Activate your account so you can use it'
-            );
-          })
-          .catch((err) => console.log(err));
+        return this.LoginUser(email, password);
       }) //todo: add email verification
       .catch((error) => console.error(error));
   }
@@ -109,10 +97,8 @@ export class AuthService {
           console.log(error);
         });
     }
-    console.log(
-      'The user ' + auth.currentUser.displayName + ' is already logged in',
-    );
-    return 'The user ' + auth.currentUser.displayName + ' is already logged in';
+    console.log('You are already logged in');
+    return 'You are already logged in';
   }
 
   getUpdatePage() {
@@ -193,6 +179,20 @@ export class AuthService {
       console.log('You need to be logged in to remove the user');
       return 'You need to be logged in to remove the user';
     }
+  }
+
+  signout() {
+    const auth = getAuth();
+    auth.signOut().then(
+      () => {
+        console.log('You signed out successfully');
+        return 'You logged out successfully';
+      },
+      (err) => {
+        console.log(err);
+        return err;
+      },
+    );
   }
 
   checkUser() {
@@ -288,7 +288,6 @@ export class AuthService {
         return resolve({
           result: 'email sent to: ' + recipientEmail,
         });
-
       });
     });
   }
