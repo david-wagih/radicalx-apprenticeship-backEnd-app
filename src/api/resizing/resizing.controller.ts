@@ -9,20 +9,16 @@ export class ResizingController {
 
     @Get('upload')
     getUploadedFiles(){
-        return this.resizingService.getUploadedFiles;
+      return this.resizingService.getUploadedFiles();
     }
 
     @Post('upload')
-    uploadFile(){
-        return this.resizingService.uploadFile;
-    }    
-
-    // @Post('upload')
     // @UseInterceptors(FileInterceptor('file'))
-    // @Bind(UploadedFile())
-    // uploadFile(file) {
-    // console.log(file);
-    // }
+    uploadFile(@Body() fileName: string, @Body() fileType: string, @Body() filePath: string, @Body() companyName: string){
+      return this.resizingService.uploadFile(companyName, filePath, fileName, fileType);
+    }
+
+
     // uploadFileAndPassValidation(
     //   @UploadedFile(
     //     new ParseFilePipeBuilder()
