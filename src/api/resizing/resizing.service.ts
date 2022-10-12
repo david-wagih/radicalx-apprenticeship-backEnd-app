@@ -15,7 +15,7 @@ export class ResizingService {
         const bucket = admin.storage().bucket();
         const uploadOptions = {
             public: true,
-            destination: '/' + companyName + '/' + fileType + '/' + fileName,
+            destination: companyName + '/' + fileType + '/' + fileName,
             metadata: {
                 firebaseStorageDownloadTokens: uuidv4(),
             }
