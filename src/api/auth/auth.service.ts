@@ -226,7 +226,7 @@ export class AuthService {
         .then(() => {
           console.log(
             'The reset email has been sent to ' +
-              auth.currentUser.email +
+              email +
               '. Please check your email for the reset link',
           );
         })

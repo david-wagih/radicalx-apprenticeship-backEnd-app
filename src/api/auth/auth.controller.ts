@@ -56,8 +56,10 @@ export class AuthController {
     //this.authService.sendMail(email);
   }
 
-  @Post('passwordResetEmail')
-  passwordResetEmail(@Body() email: string) {
+  @Post('passwordResetEmail') //Done by Omar
+  passwordResetEmail(@Body() body: JSON) {
+    const email = body["email"];
+
     return this.authService.passwordResetEmail(email);
   }
 
