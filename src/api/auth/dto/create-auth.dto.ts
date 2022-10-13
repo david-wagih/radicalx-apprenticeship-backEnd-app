@@ -1,17 +1,12 @@
 import { IsEmail, IsNotEmpty, IsMobilePhone, IsBoolean } from 'class-validator';
 
 export class CreateAuthDto {
-  uid: string;
-  @IsNotEmpty()
-  password: string;
   @IsEmail()
   email: string;
-  @IsMobilePhone()
+  @IsNotEmpty()
+  password: string;
+  @IsNotEmpty()
   phoneNumber: string;
-  displayName: string;
-  @IsBoolean()
-  emailVerified: boolean;
-  photoURL: string;
-  @IsBoolean()
-  disabled: boolean;
+  @IsNotEmpty()
+  username: string;
 }

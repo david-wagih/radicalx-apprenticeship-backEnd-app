@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { error } from 'console';
 import * as admin from 'firebase-admin';
-import { UpdateRequest } from 'firebase-admin/lib/auth/auth-config';
+import {
+  CreateRequest,
+  UpdateRequest,
+} from 'firebase-admin/lib/auth/auth-config';
 import {
   sendEmailVerification,
   confirmPasswordReset,
@@ -16,36 +19,42 @@ import {
 import nodemailer from 'nodemailer';
 @Injectable()
 export class AuthService {
-  getRegistrationPage() {
-    //todo: Add registration page from Front-end team
-    console.log('This should be the registration page');
-    return 'This should be the registration page';
-  }
-
-  registerUser(
+  
+  signup(
     email: string,
     password: string,
+    username: string,
     phoneNumber: string,
-    displayName: string,
-    photoURL: string,
-    emailVerified: boolean,
-    disabled: boolean,
   ) {
+    const userConfig: CreateRequest = {
+      displayName: username,
+      email: email,
+      password: password,
+      phoneNumber: phoneNumber,
+      photoURL:
+        'https://firebasestorage.googleapis.com/v0/b/corei14-apprenticeship-app.appspot.com/o/system%2Ficons%2FdefaultUserIcon.png?alt=media&token=1f939124-256a-4e54-bb25-fd8bf157f15e', //todo: Get photoURL from .env
+      emailVerified: false,
+      disabled: false,
+    };
+    console.log(userConfig);
     admin
       .auth()
-      .createUser({
-        email: email,
-        emailVerified: emailVerified,
-        phoneNumber: phoneNumber,
-        password: password,
-        displayName: displayName,
-        photoURL: photoURL,
-        disabled: disabled,
-      })
-      .then((userRecord) => {
-        return this.LoginUser(email, password);
-      }) //todo: add email verification
-      .catch((error) => console.error(error));
+      .createUser(userConfig)
+      .then(
+        (userRecord) => {
+          console.log(this.checkUser());
+          admin
+            .auth()
+            .createCustomToken(userRecord.toJSON().toString())
+            .then((userToken) => {
+              return userToken;
+            });
+        },
+        (err) => {
+          console.error(err);
+          return err;
+        },
+      );
   }
 
   getLoginPage() {
@@ -63,7 +72,7 @@ export class AuthService {
             .then((userCredential) => {
               if (userCredential.user.emailVerified == false) {
                 const emailAddress = userCredential.user.email;
-                sendEmailVerification(userCredential.user);
+                sendEmailVerification(userCredential.user); // todo: Make sure correct tokenID is passed
                 signOut(auth);
                 console.log(
                   'You need to verify your email to be able to login. The activation email has been sent to ' +
@@ -204,6 +213,7 @@ export class AuthService {
     );
   }
 
+  
   checkUser(customToken?: string) {
     const auth = getAuth();
     
@@ -238,7 +248,7 @@ export class AuthService {
         .then(() => {
           console.log(
             'The reset email has been sent to ' +
-              auth.currentUser.email +
+              email +
               '. Please check your email for the reset link',
           );
         })

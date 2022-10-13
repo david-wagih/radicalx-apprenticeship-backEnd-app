@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 
-@Controller({ host: 'localhost', path: 'auth' })
+@Controller({ host: 'localhost'})
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -15,30 +15,17 @@ export class AuthController {
   //   return 'passed'
   // }
 
-  @Get('registerUser')
-  getRegistrationPage() {
-    return this.authService.getRegistrationPage();
-  }
-
-  @Post('registerUser')
+  @Post('signup')
   registerUser(@Body() authDto: CreateAuthDto) {
-    return this.authService.registerUser(
+    return this.authService.signup(
       authDto.email,
       authDto.password,
-      authDto.phoneNumber ?? '+10000000000',
-      authDto.displayName ?? authDto.email,
-      authDto.photoURL ?? 'https:example.com/photoURL',
-      false,
-      false,
+      authDto.username,
+      authDto.phoneNumber,
     );
   }
 
   // User Logging in
-  @Get('loginUser')
-  getLoginPage() {
-    return this.authService.getLoginPage();
-  }
-
   @Post('loginUser') //todo: Get data from DTO
   LoginUser(@Body() authDto: UpdateAuthDto) {
     return this.authService.LoginUser(authDto.email, authDto.password);
@@ -46,28 +33,18 @@ export class AuthController {
 
   // User Update Account Data
 
-  @Get('updateAccount') //todo: Get data from DTO
-  getUpdatePage(@Body() authDto: UpdateAuthDto) {
-    return this.authService.getUpdatePage();
-  }
-
   @Patch('updateAccount') //todo: Get data from DTO
   updateUser(@Body() authDto: UpdateAuthDto) {
     return this.authService.updateUser(
       authDto.email,
       authDto.phoneNumber,
-      authDto.displayName,
+      authDto.username,
       authDto.photoURL,
       authDto.disabled,
     );
   }
 
   //User Remove User
-  @Get('removeUser') //todo: Get data from DTO
-  getRemovePage(@Body() authDto: UpdateAuthDto) {
-    return this.authService.getRemovePage();
-  }
-
   @Delete('removeUser') //todo: get data from DTO
   removeUser(@Body() authDto: UpdateAuthDto) {
     return this.authService.removeUser();
@@ -79,8 +56,10 @@ export class AuthController {
     //this.authService.sendMail(email);
   }
 
-  @Post('passwordResetEmail')
-  passwordResetEmail(@Body() email: string) {
+  @Post('passwordResetEmail') //Done by Omar
+  passwordResetEmail(@Body() body: JSON) {
+    const email = body["email"];
+
     return this.authService.passwordResetEmail(email);
   }
 
