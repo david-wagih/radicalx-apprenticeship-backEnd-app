@@ -13,8 +13,12 @@ export class ResizingController {
     }
 
     @Post('upload')
-    // @UseInterceptors(FileInterceptor('file'))
-    uploadFile(@Body() fileName: string, @Body() fileType: string, @Body() filePath: string, @Body() companyName: string){
+    // @UseInterceptors(FileInterceptor('file')) 
+    uploadFile(@Body() body: JSON){
+      const companyName = body['companyName'];
+      const filePath = body['filePath'];
+      const fileName = body['fileName'];
+      const fileType = body['fileType'];
       return this.resizingService.uploadFile(companyName, filePath, fileName, fileType);
     }
 
