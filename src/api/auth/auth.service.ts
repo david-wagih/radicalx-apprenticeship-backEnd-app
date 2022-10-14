@@ -14,10 +14,10 @@ import {
   setPersistence,
   signOut,
 } from 'firebase/auth';
+import * as firebaseApp from 'firebase/auth';
 import nodemailer from 'nodemailer';
 @Injectable()
 export class AuthService {
-  
   signup(
     email: string,
     password: string,
@@ -206,6 +206,7 @@ export class AuthService {
 
   checkUser() {
     const auth = getAuth();
+
     const user = auth.currentUser;
     if (user) {
       console.log('User already logged in');
