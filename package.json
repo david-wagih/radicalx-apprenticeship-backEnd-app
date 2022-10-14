@@ -1,8 +1,8 @@
 {
   "name": "radicalx-app",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Back-end system for the RadicalX apprenticeship system",
+  "author": "Squad14-backend-team",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

@@ -1,23 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { error } from 'console';
 import * as admin from 'firebase-admin';
 import {
   CreateRequest,
   UpdateRequest,
 } from 'firebase-admin/lib/auth/auth-config';
 import {
+  User,
   sendEmailVerification,
   confirmPasswordReset,
   getAuth,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   browserLocalPersistence,
+  browserSessionPersistence,
   setPersistence,
-  signOut,
   signInWithCustomToken,
 } from 'firebase/auth';
-import * as firebaseApp from 'firebase/auth';
-import nodemailer from 'nodemailer';
 @Injectable()
 export class AuthService {
   signup(
@@ -26,64 +24,48 @@ export class AuthService {
     username: string,
     phoneNumber: string,
   ) {
-    const userConfig: CreateRequest = {
-      displayName: username,
-      email: email,
-      password: password,
-      phoneNumber: phoneNumber,
-      photoURL:
-        'https://firebasestorage.googleapis.com/v0/b/corei14-apprenticeship-app.appspot.com/o/system%2Ficons%2FdefaultUserIcon.png?alt=media&token=1f939124-256a-4e54-bb25-fd8bf157f15e', //todo: Get photoURL from .env
-      emailVerified: false,
-      disabled: false,
-    };
-    console.log(userConfig);
-    admin
-      .auth()
-      .createUser(userConfig)
-      .then(
-        (userRecord) => {
-          console.log(this.checkUser());
-          admin
-            .auth()
-            .createCustomToken(userRecord.toJSON().toString())
-            .then((userToken) => {
-              return userToken;
-            });
-        },
-        (err) => {
-          console.error(err);
-          return err;
-        },
-      );
-  }
-
-  getLoginPage() {
-    //todo: add login page
-    console.log('This should be the registration page');
-    return 'this should be the login page';
-  }
-
-  LoginUser(email: string, password: string) {
-    const auth = getAuth();
     if (this.checkUser() != true) {
-      setPersistence(auth, browserLocalPersistence)
+      const userConfig: CreateRequest = {
+        displayName: username,
+        email: email,
+        password: password,
+        phoneNumber: phoneNumber,
+        photoURL:
+          'https://firebasestorage.googleapis.com/v0/b/corei14-apprenticeship-app.appspot.com/o/system%2Ficons%2FdefaultUserIcon.png?alt=media&token=1f939124-256a-4e54-bb25-fd8bf157f15e',
+        emailVerified: false,
+        disabled: false,
+      };
+      admin
+        .auth()
+        .createUser(userConfig)
+        .then(
+          () => {
+            this.Login(email, password, false);
+          },
+          (reason) => {
+            console.error(reason);
+            return reason;
+          },
+        );
+    } else {
+      console.log('You are already logged in');
+      return 'You are already logged in';
+    }
+  }
+
+  Login(email: string, password: string, rememberMe: boolean) {
+    if (this.checkUser() != true) {
+      const auth = getAuth();
+      const persistence =
+        rememberMe == true
+          ? browserLocalPersistence
+          : browserSessionPersistence;
+      setPersistence(auth, persistence)
         .then(() => {
           signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
               if (userCredential.user.emailVerified == false) {
-                const emailAddress = userCredential.user.email;
-                sendEmailVerification(userCredential.user); // todo: Make sure correct tokenID is passed
-                signOut(auth);
-                console.log(
-                  'You need to verify your email to be able to login. The activation email has been sent to ' +
-                    emailAddress +
-                    '. Please Check your inbox',
-                );
-                return (
-                  'You need to verify your email to be able to login. The activation email has been sent to ' +
-                  emailAddress +
-                  '. Please Check your inbox'
-                );
+                return this.verifyEmail(auth.currentUser);
               } else {
                 // Signed in and verified
                 console.log('Logged in Successfully');
@@ -133,6 +115,7 @@ export class AuthService {
 
   updateUser(
     email: string,
+    password: string,
     phoneNumber: string,
     displayName: string,
     photoURL: string,
@@ -147,6 +130,9 @@ export class AuthService {
         photoURL: photoURL ?? auth.currentUser.photoURL,
         disabled: disabled,
       };
+      if (password) {
+        updateRequest.password = password;
+      }
       admin
         .auth()
         .updateUser(auth.currentUser.uid, updateRequest)
@@ -160,23 +146,7 @@ export class AuthService {
     }
   }
 
-  getRemovePage() {
-    if (this.checkUser()) {
-      const auth = getAuth();
-      console.log(
-        'this should be the remove page for ' + auth.currentUser.displayName,
-      );
-      return (
-        'this should be the remove page for ' + auth.currentUser.displayName
-      );
-    } else {
-      console.log('You need to login to remove the user');
-      return 'you need to login to remove the user';
-    }
-    // todo: add the remove page
-  }
-
-  removeUser() {
+  remove() {
     if (this.checkUser()) {
       const auth = getAuth();
       admin
@@ -214,6 +184,11 @@ export class AuthService {
 
     const user = auth.currentUser;
     if (user) {
+      if (user.emailVerified == false) {
+        console.log(
+          'You need to verify your email to access this page. A verification email has been sent to your email',
+        );
+      }
       console.log('User already logged in');
       return true; //User is logged in
     } else {
@@ -234,7 +209,21 @@ export class AuthService {
     }
   }
 
-  async passwordResetEmail(email: string) {
+  verifyEmail(user: User) {
+    sendEmailVerification(user);
+    console.log(
+      'You need to verify your email. The activation email has been sent to ' +
+        user.email +
+        '. Please Check your inbox',
+    );
+    return (
+      'You need to verify your email. The activation email has been sent to ' +
+      user.email +
+      '. Please Check your inbox'
+    );
+  }
+
+  passwordResetEmail(email: string) {
     if (this.checkUser()) {
       console.log('You are already logged in');
       return 'You are already logged in';
@@ -254,14 +243,14 @@ export class AuthService {
     }
   }
 
-  resetPassword(code: string, newPassword: string) {
+  confirmPasswordReset(code: string, newPassword: string) {
     if (this.checkUser()) {
       console.log('You are already logged in');
       return 'You are already logged in';
     } else {
       const auth = getAuth();
       confirmPasswordReset(auth, code, newPassword).then(
-        (_value) => {
+        () => {
           console.log('Your password has been reset successfully');
           return 'Your password has been reset successfully';
         },
@@ -270,53 +259,5 @@ export class AuthService {
         },
       );
     }
-  }
-
-  sendResetMail(email: string) {
-    admin
-      .auth()
-      .generatePasswordResetLink(email)
-      .then((link) => {
-        //console.log(link);
-        this.sendMail(email, link);
-      })
-      .catch((error) => {
-        console.error('Error sending email', error);
-        return error;
-      });
-  }
-
-  async sendMail(email: string, link: string) {
-    const mailTransport = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'CoreI14Internships@gmail.com',
-        pass: 'tltreznwjzejufxc',
-      },
-    });
-
-    const recipientEmail = email;
-    console.log('recipientEmail: ' + recipientEmail);
-
-    const mailOptions = {
-      from: 'corei14 <CoreI14Internships@gmail.com>',
-      to: recipientEmail,
-      subject: 'RadicalX-Apprenticeship Password Reset',
-      html: `<p style="font-size: 18px;">Reset your account password</p>
-              <p style="font-size: 12px;">You requested a password reset.</p>
-              <p style="font-size: 12px;">Please use the link below to reset you password:</p>
-              <a href="${link}">Reset Password Link</a>
-              <p style="font-size: 12px;">Best Regards,</p>
-            `, // email content in HTML
-    };
-
-    return mailTransport.sendMail(mailOptions).then(() => {
-      console.log('email sent to:', recipientEmail);
-      return new Promise((resolve, _reject) => {
-        return resolve({
-          result: 'email sent to: ' + recipientEmail,
-        });
-      });
-    });
   }
 }

@@ -1,45 +1,53 @@
-import { Controller, Post, Body, Patch, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Delete , Header} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
+  @Header('Content-Type', 'application/json')
   registerUser(@Body() userDetails: JSON) {
     const email = userDetails['email'];
     const password = userDetails['password'];
     const username = userDetails['username'];
     const phoneNumber = userDetails['phoneNumber'];
-    return this.authService.signup(email, password, username, phoneNumber);
+    return this.authService.signup(email, password, username, phoneNumber); 
   }
 
   // User Logging in
-  @Post('loginUser')
+  @Post('login')
   LoginUser(@Body() userCredentials: JSON) {
     const email = userCredentials['email'];
     const password = userCredentials['password'];
-    return this.authService.LoginUser(email, password);
+    const rememberMe = userCredentials['rememberMe'];
+    return this.authService.Login(email, password, rememberMe);
   }
 
   // User Update Account Data
 
-  @Patch('updateAccount')
+  @Patch('update')
   updateUser(@Body() userDetails: JSON) {
     const email = userDetails['email'];
     const phoneNumber = userDetails['phoneNumber'];
     const username = userDetails['username'];
     const photoURL = userDetails['photoURL'];
     const disabled = userDetails['disabled'];
+    const password = userDetails['password'];
     return this.authService.updateUser(
       email,
+      password,
       phoneNumber,
       username,
       photoURL,
       disabled,
     );
+  }
+
+  //User Remove User
+  @Delete('remove') //todo: get data from DTO
+  removeUser() {
+    return this.authService.remove();
   }
 
   @Post('signout')
@@ -54,23 +62,10 @@ export class AuthController {
     return this.authService.passwordResetEmail(email);
   }
 
-  @Post('resetPassword')
+  @Post('confirmPasswordReset')
   resetPassword(@Body() data: JSON) {
     const oobCode = data['oobCode'];
     const password = data['password'];
-    return this.authService.resetPassword(oobCode, password);
-  }
-
-  //User Remove User
-  @Delete('removeUser') //todo: get data from DTO
-  removeUser() {
-    return this.authService.removeUser();
-  }
-
-  @Post('resetPass')
-  resetPass(@Body() data: JSON) {
-    const email = data['email'];
-    return this.authService.sendResetMail(email);
-    //this.authService.sendMail(email);
+    return this.authService.confirmPasswordReset(oobCode, password);
   }
 }
