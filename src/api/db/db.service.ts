@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreateDbDto } from './dto/create-db.dto';
-import { UpdateDbDto } from './dto/update-db.dto';
 import * as admin from 'firebase-admin';
 
 @Injectable()

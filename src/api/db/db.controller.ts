@@ -8,15 +8,12 @@ import {
   Delete,
 } from '@nestjs/common';
 import { DbService } from './db.service';
-import { CreateDbDto } from './dto/create-db.dto';
-import { UpdateDbDto } from './dto/update-db.dto';
-
 @Controller({ host: 'localhost', path: 'db' })
 export class DbController {
   constructor(private readonly dbService: DbService) {}
 
   @Post('add')
-  create(@Body() createDbDto: CreateDbDto) {
+  create(@Body() createDbDto: ) {
     return this.dbService.create(createDbDto);
   }
 
