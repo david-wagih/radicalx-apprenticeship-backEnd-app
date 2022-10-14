@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Delete , Header} from '@nestjs/common';
+import { Controller, Post, Body, Patch, Delete, Header } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller()
@@ -12,7 +12,7 @@ export class AuthController {
     const password = userDetails['password'];
     const username = userDetails['username'];
     const phoneNumber = userDetails['phoneNumber'];
-    return this.authService.signup(email, password, username, phoneNumber); 
+    return this.authService.signup(email, password, username, phoneNumber);
   }
 
   // User Logging in
