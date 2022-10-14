@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { error } from 'console';
 import * as admin from 'firebase-admin';
 import {
   CreateRequest,
@@ -13,6 +14,7 @@ import {
   browserLocalPersistence,
   setPersistence,
   signOut,
+  signInWithCustomToken,
 } from 'firebase/auth';
 import * as firebaseApp from 'firebase/auth';
 import nodemailer from 'nodemailer';
@@ -86,11 +88,13 @@ export class AuthService {
                 // Signed in and verified
                 console.log('Logged in Successfully');
                 const user = userCredential.user; // todo: save user session in browser storage to avoid logout if server restarts
+                const developerClaims = user.toJSON();
+
                 admin
                   .auth()
-                  .createCustomToken(user.uid)
+                  .createCustomToken(user.uid, developerClaims)
                   .then((customToken) => {
-                    //console.log(customToken);
+                    console.log(customToken);
                     return customToken; // Send token back to client
                   })
                   .catch((error) => {
@@ -105,9 +109,10 @@ export class AuthService {
         .catch((error) => {
           console.log(error);
         });
+    } else {
+      console.log('You are already logged in');
+      return 'You are already logged in';
     }
-    console.log('You are already logged in');
-    return 'You are already logged in';
   }
 
   getUpdatePage() {
@@ -204,7 +209,7 @@ export class AuthService {
     );
   }
 
-  checkUser() {
+  checkUser(customToken?: string) {
     const auth = getAuth();
 
     const user = auth.currentUser;
@@ -212,8 +217,20 @@ export class AuthService {
       console.log('User already logged in');
       return true; //User is logged in
     } else {
-      console.log('User needs to log in');
-      return false; // No user is logged in.
+      if (customToken) {
+        signInWithCustomToken(auth, customToken).then(
+          () => {
+            return true;
+          },
+          (result) => {
+            console.error(result);
+            return false;
+          },
+        );
+      } else {
+        console.log('User needs to log in');
+        return false; // No user is logged in.
+      }
     }
   }
 
