@@ -55,7 +55,7 @@ export class DbController {
   @Delete('delete/:id')
   @Header('content-type', 'application/json')
   delete(@Param() query: string[]) {
-    const id = query['id'];
-    return this.dbService.deleteApprenticeship(id);
+    const apprenticeshipID = query['apprenticeshipID'];
+    return this.dbService.deleteApprenticeship(apprenticeshipID);
   }
 }

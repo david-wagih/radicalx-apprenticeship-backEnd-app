@@ -7,36 +7,35 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
+import { query } from 'express';
 import { StorageService } from './storage.service';
-import { CreateStorageDto } from './dto/create-storage.dto';
-import { UpdateStorageDto } from './dto/update-storage.dto';
 
-@Controller({ host: 'localhost', path: 'storage' })
+@Controller({path: 'storage' })
 export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
   @Post()
-  create(@Body() createStorageDto: CreateStorageDto) {
-    return this.storageService.create(createStorageDto);
+  uploadData(@Body() data) {
+    const companyVideo = data['companyVideo'];
+    const companyLogo = data['companyLogo'];
+    return this.storageService.uploadCompanyData(companyVideo, companyLogo);
   }
 
-  @Get()
-  findAll() {
-    return this.storageService.findAll();
+  @Patch()
+  updateData(@Param() query: string[], @Body() data) {
+    const apprenticeshipID = data['apprenticeshipID'];
+    const companyVideo = data['companyVideo'];
+    const companyLogo = data['companyLogo'];
+    return this.storageService.updateCompanyData(
+      apprenticeshipID,
+      companyVideo,
+      companyLogo,
+    );
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.storageService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateStorageDto: UpdateStorageDto) {
-    return this.storageService.update(+id, updateStorageDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.storageService.remove(+id);
+  @Delete()
+  removeData(@Param() query: string[]) {
+    const apprenticeshipID = query['apprenticeshipID'];
+    return this.storageService.removeCompanyData(apprenticeshipID);
   }
 }

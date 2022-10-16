@@ -22,11 +22,86 @@ export class DbService {
   //   return 'This action adds a new db';
   // }
 
-  getUserApprenticeships(userID: string) {
-    return 'Apprenticeships List for user ' + userID;
+  createUserRecord(userID: string) {
+    admin.firestore().collection('Users').doc(userID).set({
+      apprenticeships: [],
+    }); 
   }
 
-  async createApprenticeship(
+  getUserApprenticeships(userID: string) {
+    const apprenticeships = [];
+    admin
+      .firestore()
+      .collection('Apprenticeships')
+      .where('creator', 'in', userID)
+      .get()
+      .then(
+        (
+          apprenticeshipList: admin.firestore.QuerySnapshot<admin.firestore.DocumentData>,
+        ) => {
+          apprenticeshipList.docs.forEach(
+            (
+              apprenticeship: admin.firestore.QueryDocumentSnapshot<admin.firestore.DocumentData>,
+            ) => {
+              //Getting the data required per appreticeship
+              const teamRoles = [];
+              const teamAdmins = [];
+              apprenticeship.data()['teamRoles'].foreach((teamRole) => {
+                const roleName = teamRole['roleName'];
+                const roleDescription = teamRole['roleDescription'];
+                const requiredSkills = teamRole['RequiredSkills'];
+                const complementarySkills = teamRole['ComplementarySkills'];
+                const minHours = teamRole['minHours'];
+                const locationPreferences = teamRole['locationPreferences'];
+                teamRoles.push({
+                  roleName: roleName,
+                  roleDescription: roleDescription,
+                  requiredSkills: requiredSkills,
+                  complementarySkills: complementarySkills,
+                  minHours: minHours,
+                  locationPreferences: locationPreferences,
+                });
+              });
+              apprenticeship.data()['teamAdmins'].foreach((teamAdmin) => {
+                teamAdmins.push({
+                  name: teamAdmin['name'],
+                  email: teamAdmin['email'],
+                  linkedin: teamAdmin['linkedin'],
+                  logo: teamAdmin['logo'],
+                });
+              });
+              // Push into apprenticeship List
+              apprenticeships.push({
+                id: apprenticeship.id,
+                apprenticeshipData: {
+                  apprenticeshipTitle:
+                    apprenticeship.data()['apprenticeshipTitle'],
+                  companyLogo: apprenticeship.data()['companyLogo'],
+                  companyDescription:
+                    apprenticeship.data()['companyDescription'],
+                  apprenticeshipDescription:
+                    apprenticeship.data()['apprenticeshipDescription'],
+                  companyVideo: apprenticeship.data()['companyLogo'],
+                  teamType: apprenticeship.data()['teamType'],
+                  teamRoles: teamRoles,
+                  teamAdmins: teamAdmins,
+                  timeline: {
+                    startDate: apprenticeship.data()['timeline']['startDate'],
+                    endDate: apprenticeship.data()['timeline']['endDate'],
+                  },
+                },
+              });
+            },
+          );
+          return apprenticeships;
+        },
+        (reason) => {
+          console.error(reason);
+        },
+      );
+  }
+
+  createApprenticeship(
     creator: string,
     companyTitle: string,
     companyLogo: File,
@@ -40,51 +115,105 @@ export class DbService {
     timeline: [],
   ) {
     // todo: upload video and image and get reference
-    const companyData = {
-      description: companyDescription,
-    };
-
+    const references = StorageService.prototype.uploadCompanyData(
+      companyLogo,
+      companyVideo,
+    );
+    const companyVideoReference = references['video'];
+    const companyLogoReference = references['logo'];
+    // todo: Create Apprenticeship
     const apprenticeshipData = {
-      apprenticeshipDescription: companyDescription,
+      creator: creator,
+      companyTitle: companyTitle,
+      companyLogo: companyLogoReference,
+      companyDescription: companyDescription,
+      companyVideo: companyVideoReference,
+      apprenticeshipTitle: apprenticeshipTitle,
+      apprenticeshipDescription: apprenticeshipDescription,
       teamType: teamType,
       teamRoles: teamRoles,
       teamAdmins: teamAdmins,
       timeline: timeline,
-      creator: creator,
     };
-    try {
-      const companyRecord = await admin
-        .firestore()
-        .collection('Companies')
-        .doc(companyTitle)
-        .get();
-      if (!companyRecord.exists) {
-        const references = StorageService.prototype.uploadCompanyData(
-          companyLogo,
-          companyVideo,
-        );
-        const companyVideoReference = references['video'];
-        const companyLogoReference = references['logo'];
-        await admin
-          .firestore()
-          .collection('Companies')
-          .doc(companyTitle)
-          .set(companyData);
-      } else {
-        admin
-          .firestore()
-          .collection('Companies')
-          .doc(companyTitle)
-          .collection('apprenticeships')
-          .doc(apprenticeshipTitle)
-          .set(apprenticeshipData);
-      }
-    } catch (err) {
-      console.error(err);
-    }
+
+    admin
+      .firestore()
+      .collection('Apprenticeships')
+      .add(apprenticeshipData)
+      .then(
+        (
+          apprenticeshipRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>,
+        ) => {
+          admin
+            .firestore()
+            .collection('Users')
+            .doc(creator)
+            .update({
+              apprenticeships: admin.firestore.FieldValue.arrayUnion(
+                apprenticeshipRef.id,
+              ),
+            })
+            .then(
+              (result: admin.firestore.WriteResult) => {
+                console.log(result);
+                return result;
+              },
+              (reason) => {
+                console.error(reason);
+              },
+            );
+        },
+        (reason: string) => {
+          console.error(reason);
+        },
+      );
   }
 
-  deleteApprenticeship(id: string) {
-    return 'Deleted apprenticeship for user ' + id;
+  deleteApprenticeship(apprenticeshipID: string) {
+    admin
+      .firestore()
+      .collection('Apprenticeships')
+      .doc(apprenticeshipID)
+      .get()
+      .then(
+        (
+          apprenticeshipData: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>,
+        ) => {
+          const userID = apprenticeshipData.data['creator'];
+          admin
+            .firestore()
+            .collection('Apprenticeships')
+            .doc(apprenticeshipID)
+            .delete()
+            .then(
+              () => {
+                StorageService.prototype.removeCompanyData(apprenticeshipID);
+                admin
+                  .firestore()
+                  .collection('Users')
+                  .doc(userID)
+                  .update({
+                    apprenticeships:
+                      admin.firestore.FieldValue.arrayRemove(apprenticeshipID),
+                  })
+                  .then(
+                    () => {
+                      console.log('Deleted apprenticeship');
+                      return 'Deleted apprenticeship';
+                    },
+                    (reason) => {
+                      console.error(reason);
+                    },
+                  );
+              },
+              (reason: string) => {
+                console.error(reason);
+              },
+            );
+        },
+        (reason) => {
+          console.error(reason);
+        },
+      );
   }
 }

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import {DbService} from '../db/db.service'
 import * as admin from 'firebase-admin';
 import {
   CreateRequest,
@@ -40,6 +41,7 @@ export class AuthService {
         .createUser(userConfig)
         .then(
           () => {
+            DbService.prototype.createUserRecord(userConfig.uid);
             this.Login(email, password, false);
           },
           (reason) => {
