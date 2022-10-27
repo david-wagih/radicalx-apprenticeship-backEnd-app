@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class StorageService {
-  uploadCompanyData(
+  async uploadCompanyData(
     apprenticeshipID: string,
     companyLogo: File,
     companyVideo: File,
@@ -31,8 +31,8 @@ export class StorageService {
       },
     };
 
-    bucket.upload(filePath, uploadOptions).then();
-    const storage = await bucket.upload(filePath, uploadOptions);
+    bucket.upload(companyVideo.name, videoOptions).then();
+    const storage = await bucket.upload(companyVideo.name, videoOptions);
     console.log(storage[0].metadata.mediaLink);
     return storage[0].metadata.mediaLink;
 
@@ -52,7 +52,7 @@ export class StorageService {
     companyVideo: File,
   ) {
     this.removeCompanyData(apprenticeshipID);
-    return this.uploadCompanyData(companyLogo, companyVideo);
+    return this.uploadCompanyData(apprenticeshipID, companyLogo, companyVideo);
   }
 
   removeCompanyData(apprenticeshipID: string) {

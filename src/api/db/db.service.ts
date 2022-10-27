@@ -116,6 +116,7 @@ export class DbService {
   ) {
     // todo: upload video and image and get reference
     const references = StorageService.prototype.uploadCompanyData(
+      apprenticeshipTitle,
       companyLogo,
       companyVideo,
     );
