@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {DbService} from '../db/db.service'
+import { DbService } from '../db/db.service';
 import * as admin from 'firebase-admin';
 import {
   CreateRequest,

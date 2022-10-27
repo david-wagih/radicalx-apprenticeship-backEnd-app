@@ -25,7 +25,7 @@ export class DbService {
   createUserRecord(userID: string) {
     admin.firestore().collection('Users').doc(userID).set({
       apprenticeships: [],
-    }); 
+    });
   }
 
   getUserApprenticeships(userID: string) {

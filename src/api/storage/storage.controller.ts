@@ -10,7 +10,7 @@ import {
 import { query } from 'express';
 import { StorageService } from './storage.service';
 
-@Controller({path: 'storage' })
+@Controller({ path: 'storage' })
 export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
