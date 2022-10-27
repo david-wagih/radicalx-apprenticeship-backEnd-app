@@ -11,7 +11,7 @@ import { DbService } from './db.service';
 import { CreateDbDto } from './dto/create-db.dto';
 import { UpdateDbDto } from './dto/update-db.dto';
 
-@Controller('db')
+@Controller({ host: 'localhost', path: 'db' })
 export class DbController {
   constructor(private readonly dbService: DbService) {}
 

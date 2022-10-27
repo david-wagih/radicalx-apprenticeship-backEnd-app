@@ -1,93 +1,71 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Delete,
-  Req,
-  Request,
-} from '@nestjs/common';
+import { Controller, Post, Body, Patch, Delete , Header} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
-@Controller('auth')
+
+@Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // User Registration
-
-  // testing the validationPipe
-  // @Post('TestRegister')
-  // TestRegisterVerification(@Body() authDto: CreateAuthDto){
-  //   return 'passed'
-  // }
-
-  @Get('register')
-  getRegistrationPage() {
-    return this.authService.getRegistrationPage();
-  }
-
-  @Post('register')
-  registerUser(@Body() authDto: CreateAuthDto) {
-    return this.authService.registerUser(
-      authDto.uid,
-      authDto.email,
-      authDto.emailVerified,
-      authDto.phoneNumber,
-      authDto.password,
-      authDto.displayName,
-      authDto.photoURL,
-      authDto.disabled,
-    );
+  @Post('signup')
+  @Header('Content-Type', 'application/json')
+  registerUser(@Body() userDetails: JSON) {
+    const email = userDetails['email'];
+    const password = userDetails['password'];
+    const username = userDetails['username'];
+    const phoneNumber = userDetails['phoneNumber'];
+    return this.authService.signup(email, password, username, phoneNumber); 
   }
 
   // User Logging in
-  @Get('login')
-  getLoginPage() {
-    return this.authService.getLoginPage();
-  }
-
-  @Post('login') //todo: Get data from DTO
-  loginUser(@Req() req: Request, @Body() authDto: UpdateAuthDto) {
-    return this.authService.loginUser(req, authDto.uid, authDto.password);
+  @Post('login')
+  LoginUser(@Body() userCredentials: JSON) {
+    const email = userCredentials['email'];
+    const password = userCredentials['password'];
+    const rememberMe = userCredentials['rememberMe'];
+    return this.authService.Login(email, password, rememberMe);
   }
 
   // User Update Account Data
 
-  @Get('update') //todo: Get data from DTO
-  getUpdatePage(@Body() authDto: UpdateAuthDto) {
-    return this.authService.getUpdatePage(authDto.uid);
-  }
-
-  @Patch('update') //todo: Get data from DTO
-  updateUser(@Body() authDto: UpdateAuthDto) {
+  @Patch('update')
+  updateUser(@Body() userDetails: JSON) {
+    const email = userDetails['email'];
+    const phoneNumber = userDetails['phoneNumber'];
+    const username = userDetails['username'];
+    const photoURL = userDetails['photoURL'];
+    const disabled = userDetails['disabled'];
+    const password = userDetails['password'];
     return this.authService.updateUser(
-      authDto.uid,
-      authDto.email,
-      authDto.emailVerified,
-      authDto.phoneNumber,
-      authDto.password,
-      authDto.displayName,
-      authDto.photoURL,
-      authDto.disabled,
+      email,
+      password,
+      phoneNumber,
+      username,
+      photoURL,
+      disabled,
     );
   }
 
   //User Remove User
-  @Get('removeAccount') //todo: Get data from DTO
-  getRemovePage(@Body() authDto: UpdateAuthDto) {
-    return this.authService.getRemovePage(authDto.uid);
+  @Delete('remove') //todo: get data from DTO
+  removeUser() {
+    return this.authService.remove();
   }
 
-  @Delete('removeAccount') //todo: get data from DTO
-  removeUser(@Body() authDto: UpdateAuthDto) {
-    return this.authService.removeUser(authDto.uid);
+  @Post('signout')
+  signout() {
+    return this.authService.signout();
   }
 
-  @Post('resetPass')
-  resetPass(@Body() email: string) {
-    return this.authService.sendResetMail(email);
-    //this.authService.sendMail(email);
+  @Post('passwordResetEmail') //Done by Omar
+  passwordResetEmail(@Body() data: JSON) {
+    const email = data['email'];
+
+    return this.authService.passwordResetEmail(email);
+  }
+
+  @Post('confirmPasswordReset')
+  resetPassword(@Body() data: JSON) {
+    const oobCode = data['oobCode'];
+    const password = data['password'];
+    return this.authService.confirmPasswordReset(oobCode, password);
   }
 }
