@@ -1,24 +1,20 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
-import { query } from 'express';
+import { Controller, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { StorageService } from './storage.service';
 
-@Controller({path: 'storage' })
+@Controller({ path: 'storage' })
 export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
   @Post()
   uploadData(@Body() data) {
+    const apprenticeshipID = data['apprenticeshipID'];
     const companyVideo = data['companyVideo'];
     const companyLogo = data['companyLogo'];
-    return this.storageService.uploadCompanyData(companyVideo, companyLogo);
+    return this.storageService.uploadCompanyData(
+      apprenticeshipID,
+      companyVideo,
+      companyLogo,
+    );
   }
 
   @Patch()

@@ -1,45 +1,45 @@
-import { Body, Injectable, Param } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
+
 @Injectable()
 export class StorageService {
-  uploadCompanyData(apprenticeshipID: string, companyLogo: File, companyVideo: File) {
+  async uploadCompanyData(
+    apprenticeshipID: string,
+    companyLogo: File,
+    companyVideo: File,
+  ) {
     //todo: Add the upload feature and return the references
     const bucket = admin.storage().bucket();
-        const imageOptions = {
-            public: true,
-            destination: "Apprenticeships/",
-            gzip: true,
-            metadata: {
-                firebaseStorageDownloadTokens: uuidv4(),
-                contentType: 'image/png',
-                cacheControl: 'public, max-age:31536000',
-            }
-        };
-        const videoOptions = {
-          public: true,
-          destination: "Apprenticeships/",
-          gzip: true,
-          metadata: {
-              firebaseStorageDownloadTokens: uuidv4(),
-              contentType: 'video/mp4',
-              cacheControl: 'public, max-age:31536000',
-          }
-      };
-
-        bucket.upload(filePath, uploadOptions).then();
-        const storage = await bucket.upload(filePath, uploadOptions);
-        console.log(storage[0].metadata.mediaLink);
-        return (storage[0].metadata.mediaLink);
-
-
+    const imageOptions = {
+      public: true,
+      destination: 'Apprenticeships/' + apprenticeshipID,
+      gzip: true,
+      metadata: {
+        firebaseStorageDownloadTokens: uuidv4(),
+        contentType: 'image/png',
+        cacheControl: 'public, max-age:31536000',
+      },
+    };
+    const videoOptions = {
+      public: true,
+      destination: 'Apprenticeships/' + apprenticeshipID,
+      gzip: true,
+      metadata: {
+        firebaseStorageDownloadTokens: uuidv4(),
+        contentType: 'video/mp4',
+        cacheControl: 'public, max-age:31536000',
+      },
+    };
+    const logo = await bucket.upload(companyLogo.name, imageOptions);
+    const video = await bucket.upload(companyVideo.name, videoOptions);
     console.log({
-      logo: 'companyLogo',
-      video: 'companyVideo',
+      logo: 'Logo: ' + logo,
+      video: 'Video: ' + video,
     });
     return {
-      logo: 'companyLogo',
-      video: 'companyVideo',
+      logo: logo,
+      video: video,
     };
   }
 
@@ -49,10 +49,24 @@ export class StorageService {
     companyVideo: File,
   ) {
     this.removeCompanyData(apprenticeshipID);
-    return this.uploadCompanyData(companyLogo, companyVideo);
+    return this.uploadCompanyData(apprenticeshipID, companyLogo, companyVideo);
   }
-
   removeCompanyData(apprenticeshipID: string) {
-    return 'Removed companyData';
+    const deleteFilesOptions = {
+      prefix: 'apprenticeships/' + apprenticeshipID + '/',
+    };
+    admin
+      .storage()
+      .bucket()
+      .deleteFiles(deleteFilesOptions)
+      .then(
+        () => {
+          console.log('Removed companyData successfully');
+          return 'Removed companyData successfully';
+        },
+        (reason) => {
+          console.error(reason);
+        },
+      );
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {DbService} from '../db/db.service'
+import { DbService } from '../db/db.service';
 import * as admin from 'firebase-admin';
 import {
   CreateRequest,
@@ -19,103 +19,72 @@ import {
 } from 'firebase/auth';
 @Injectable()
 export class AuthService {
-  signup(
+  async signup(
     email: string,
     password: string,
     username: string,
     phoneNumber: string,
   ) {
-    if (this.checkUser() != true) {
-      const userConfig: CreateRequest = {
-        displayName: username,
-        email: email,
-        password: password,
-        phoneNumber: phoneNumber,
-        photoURL:
-          'https://firebasestorage.googleapis.com/v0/b/corei14-apprenticeship-app.appspot.com/o/system%2Ficons%2FdefaultUserIcon.png?alt=media&token=1f939124-256a-4e54-bb25-fd8bf157f15e',
-        emailVerified: false,
-        disabled: false,
-      };
-      admin
-        .auth()
-        .createUser(userConfig)
-        .then(
-          () => {
-            DbService.prototype.createUserRecord(userConfig.uid);
-            this.Login(email, password, false);
-          },
-          (reason) => {
-            console.error(reason);
-            return reason;
-          },
+    try {
+      if ((await this.checkUser()) != true) {
+        const userConfig: CreateRequest = {
+          displayName: username,
+          email: email,
+          password: password,
+          phoneNumber: phoneNumber,
+          photoURL:
+            'https://firebasestorage.googleapis.com/v0/b/corei14-apprenticeship-app.appspot.com/o/system%2Ficons%2FdefaultUserIcon.png?alt=media&token=1f939124-256a-4e54-bb25-fd8bf157f15e',
+          emailVerified: false,
+          disabled: false,
+        };
+        const userRecord = await admin.auth().createUser(userConfig);
+        DbService.prototype.createUserRecord(userRecord.uid);
+        return this.Login(email, password, false);
+      } else {
+        return 'You are already logged in';
+      }
+    } catch (err) {
+      console.error(err);
+      return err;
+    }
+  }
+
+  async Login(email: string, password: string, rememberMe: boolean) {
+    try {
+      if ((await this.checkUser()) != true) {
+        const auth = getAuth();
+        const persistence =
+          rememberMe == true
+            ? browserLocalPersistence
+            : browserSessionPersistence;
+        await setPersistence(auth, persistence);
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password,
         );
-    } else {
-      console.log('You are already logged in');
-      return 'You are already logged in';
+        if (userCredential.user.emailVerified == false) {
+          return await this.verifyEmail(auth.currentUser);
+        }
+          // Signed in and verified
+          console.log('Logged in Successfully');
+          const user = userCredential.user; // todo: save user session in browser storage to avoid logout if server restarts
+          const developerClaims = userCredential.user.toJSON();
+          const customToken = await admin
+            .auth()
+            .createCustomToken(user.uid, developerClaims);
+          return {userID: user.uid ,customToken: customToken };
+      } else {
+        console.log('You are already logged in');
+        return 'You are already logged in';
+      }
+    } catch (err) {
+      console.error(err);
+      return err;
     }
   }
 
-  Login(email: string, password: string, rememberMe: boolean) {
-    if (this.checkUser() != true) {
-      const auth = getAuth();
-      const persistence =
-        rememberMe == true
-          ? browserLocalPersistence
-          : browserSessionPersistence;
-      setPersistence(auth, persistence)
-        .then(() => {
-          signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-              if (userCredential.user.emailVerified == false) {
-                return this.verifyEmail(auth.currentUser);
-              } else {
-                // Signed in and verified
-                console.log('Logged in Successfully');
-                const user = userCredential.user; // todo: save user session in browser storage to avoid logout if server restarts
-                const developerClaims = user.toJSON();
-
-                admin
-                  .auth()
-                  .createCustomToken(user.uid, developerClaims)
-                  .then((customToken) => {
-                    console.log(customToken);
-                    return customToken; // Send token back to client
-                  })
-                  .catch((error) => {
-                    console.log('Error creating custom token:', error);
-                  });
-              }
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } else {
-      console.log('You are already logged in');
-      return 'You are already logged in';
-    }
-  }
-
-  getUpdatePage() {
-    if (this.checkUser()) {
-      const auth = getAuth();
-      console.log(
-        'this should be the update page for ' + auth.currentUser.displayName,
-      );
-      return (
-        'this should be the update page for ' + auth.currentUser.displayName
-      );
-    } else {
-      console.log('You need to login to update the user');
-      return 'you need to login to update the user';
-    }
-    // todo: add update page
-  }
-
-  updateUser(
+  async updateUser(
     email: string,
     password: string,
     phoneNumber: string,
@@ -123,32 +92,32 @@ export class AuthService {
     photoURL: string,
     disabled: boolean,
   ) {
-    const auth = getAuth();
-    if (this.checkUser()) {
-      const updateRequest: UpdateRequest = {
-        displayName: displayName ?? auth.currentUser.displayName,
-        email: email ?? auth.currentUser.email,
-        phoneNumber: phoneNumber ?? auth.currentUser.phoneNumber,
-        photoURL: photoURL ?? auth.currentUser.photoURL,
-        disabled: disabled,
-      };
-      if (password) {
-        updateRequest.password = password;
+    try {
+      const auth = getAuth();
+      if (await this.checkUser()) {
+        const updateRequest: UpdateRequest = {
+          displayName: displayName ?? auth.currentUser.displayName,
+          email: email ?? auth.currentUser.email,
+          phoneNumber: phoneNumber ?? auth.currentUser.phoneNumber,
+          photoURL: photoURL ?? auth.currentUser.photoURL,
+          disabled: disabled,
+        };
+        if (password) {
+          updateRequest.password = password;
+        }
+        const userRecord = await admin
+          .auth()
+          .updateUser(auth.currentUser.uid, updateRequest);
+        console.log('Successfully updated user ' + userRecord.displayName);
+        return 'Successfully updated user ' + userRecord.displayName;
       }
-      admin
-        .auth()
-        .updateUser(auth.currentUser.uid, updateRequest)
-        .then((userRecord) => {
-          console.log('Successfully updated user ' + userRecord.displayName);
-          return 'Successfully updated user ' + userRecord.displayName;
-        })
-        .catch((error) => {
-          console.error('Error updating user:', error);
-        });
+    } catch (err) {
+      console.error(err);
+      return err;
     }
   }
 
-  remove() {
+  async remove() {
     if (this.checkUser()) {
       const auth = getAuth();
       admin
@@ -190,9 +159,11 @@ export class AuthService {
         console.log(
           'You need to verify your email to access this page. A verification email has been sent to your email',
         );
+        return false;
+      } else {
+        console.log('User already logged in');
+        return true;
       }
-      console.log('User already logged in');
-      return true; //User is logged in
     } else {
       if (customToken) {
         signInWithCustomToken(auth, customToken).then(

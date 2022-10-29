@@ -17,6 +17,7 @@ export class AuthController {
 
   // User Logging in
   @Post('login')
+  @Header('Content-Type', 'application/json')
   LoginUser(@Body() userCredentials: JSON) {
     const email = userCredentials['email'];
     const password = userCredentials['password'];
@@ -27,6 +28,7 @@ export class AuthController {
   // User Update Account Data
 
   @Patch('update')
+  @Header('Content-Type', 'application/json')
   updateUser(@Body() userDetails: JSON) {
     const email = userDetails['email'];
     const phoneNumber = userDetails['phoneNumber'];
@@ -56,6 +58,7 @@ export class AuthController {
   }
 
   @Post('passwordResetEmail') //Done by Omar
+  @Header('Content-Type', 'application/json')
   passwordResetEmail(@Body() data: JSON) {
     const email = data['email'];
 
@@ -63,6 +66,7 @@ export class AuthController {
   }
 
   @Post('confirmPasswordReset')
+  @Header('Content-Type', 'application/json')
   resetPassword(@Body() data: JSON) {
     const oobCode = data['oobCode'];
     const password = data['password'];

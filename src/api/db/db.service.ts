@@ -25,7 +25,7 @@ export class DbService {
   createUserRecord(userID: string) {
     admin.firestore().collection('Users').doc(userID).set({
       apprenticeships: [],
-    }); 
+    });
   }
 
   getUserApprenticeships(userID: string) {
@@ -116,6 +116,7 @@ export class DbService {
   ) {
     // todo: upload video and image and get reference
     const references = StorageService.prototype.uploadCompanyData(
+      apprenticeshipTitle,
       companyLogo,
       companyVideo,
     );
@@ -135,7 +136,6 @@ export class DbService {
       teamAdmins: teamAdmins,
       timeline: timeline,
     };
-
     admin
       .firestore()
       .collection('Apprenticeships')
