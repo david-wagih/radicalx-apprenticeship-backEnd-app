@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { v4 as uuidv4 } from 'uuid';
-
 @Injectable()
 export class StorageService {
   async uploadCompanyData(

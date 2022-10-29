@@ -10,6 +10,7 @@ export class StorageController {
     const apprenticeshipID = data['apprenticeshipID'];
     const companyVideo = data['companyVideo'];
     const companyLogo = data['companyLogo'];
+    const apprenticeshipID = data['apprenticeshipID'];
     return this.storageService.uploadCompanyData(
       apprenticeshipID,
       companyVideo,
