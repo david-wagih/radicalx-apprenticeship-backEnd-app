@@ -66,14 +66,14 @@ export class AuthService {
         if (userCredential.user.emailVerified == false) {
           return await this.verifyEmail(auth.currentUser);
         }
-          // Signed in and verified
-          console.log('Logged in Successfully');
-          const user = userCredential.user; // todo: save user session in browser storage to avoid logout if server restarts
-          const developerClaims = userCredential.user.toJSON();
-          const customToken = await admin
-            .auth()
-            .createCustomToken(user.uid, developerClaims);
-          return {userID: user.uid ,customToken: customToken };
+        // Signed in and verified
+        console.log('Logged in Successfully');
+        const user = userCredential.user; // todo: save user session in browser storage to avoid logout if server restarts
+        const developerClaims = userCredential.user.toJSON();
+        const customToken = await admin
+          .auth()
+          .createCustomToken(user.uid, developerClaims);
+        return { userID: user.uid, customToken: customToken };
       } else {
         console.log('You are already logged in');
         return 'You are already logged in';
