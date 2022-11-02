@@ -7,7 +7,6 @@ export class StorageController {
 
   @Post()
   uploadData(@Body() data) {
-    const apprenticeshipID = data['apprenticeshipID'];
     const companyVideo = data['companyVideo'];
     const companyLogo = data['companyLogo'];
     const apprenticeshipID = data['apprenticeshipID'];

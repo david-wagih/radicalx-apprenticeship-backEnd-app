@@ -25,7 +25,7 @@ export class DbController {
     @Param() query: string[],
     @Body() apprenticeship_details: JSON,
   ) {
-    const creator = query['id'];
+    const creator = query['userID'];
     const apprenticeshipTitle = apprenticeship_details['apprenticeshipTitle'];
     const companyLogo = apprenticeship_details['companyLogo'];
     const companyDescription = apprenticeship_details['companyDescription'];
@@ -52,7 +52,7 @@ export class DbController {
     );
   }
 
-  @Delete('delete/:id')
+  @Delete('delete/:apprenticeshipID')
   @Header('content-type', 'application/json')
   delete(@Param() query: string[]) {
     const apprenticeshipID = query['apprenticeshipID'];
