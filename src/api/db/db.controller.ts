@@ -8,7 +8,8 @@ import {
   Delete,
 } from '@nestjs/common';
 import { DbService } from './db.service';
-@Controller({ host: 'localhost', path: 'db' })
+
+@Controller()
 export class DbController {
   constructor(private readonly dbService: DbService) {}
 

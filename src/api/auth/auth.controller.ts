@@ -1,4 +1,11 @@
-import { Controller, Post, Body, Patch, Delete, Header } from '@nestjs/common';
+ import {
+  Controller,
+  Post,
+  Body,
+  Patch,
+  Delete,
+  Header,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller()

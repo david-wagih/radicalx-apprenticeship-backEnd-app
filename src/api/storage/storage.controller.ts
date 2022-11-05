@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { StorageService } from './storage.service';
 
-@Controller({ path: 'storage' })
+@Controller('storage')
 export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
@@ -10,7 +10,6 @@ export class StorageController {
     const apprenticeshipID = data['apprenticeshipID'];
     const companyVideo = data['companyVideo'];
     const companyLogo = data['companyLogo'];
-    const apprenticeshipID = data['apprenticeshipID'];
     return this.storageService.uploadCompanyData(
       apprenticeshipID,
       companyVideo,
