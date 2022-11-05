@@ -33,7 +33,7 @@ export class DbService {
     admin
       .firestore()
       .collection('Apprenticeships')
-      .where('creator', 'in', userID)
+      .where('creator', 'in', [userID])
       .get()
       .then(
         (
