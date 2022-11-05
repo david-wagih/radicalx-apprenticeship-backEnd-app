@@ -9,6 +9,7 @@ export class StorageController {
   uploadData(@Body() data) {
     const companyVideo = data['companyVideo'];
     const companyLogo = data['companyLogo'];
+    const apprenticeshipID = data['apprenticeshipID'];
     return this.storageService.uploadCompanyData(
       apprenticeshipID,
       companyVideo,

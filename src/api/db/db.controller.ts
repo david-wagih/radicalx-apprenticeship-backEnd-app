@@ -33,14 +33,12 @@ export class DbController {
     const apprenticeshipDescription =
       apprenticeship_details['apprenticeshipDescription'];
     const companyVideo = apprenticeship_details['companyVideo'];
-    const companyTitle = apprenticeshipDescription['companyTitle'];
     const teamType = apprenticeship_details['teamType'];
     const teamRoles = apprenticeship_details['teamRoles'];
     const teamAdmins = apprenticeship_details['teamAdmins'];
     const timeline = apprenticeship_details['timeline'];
     return this.dbService.createApprenticeship(
       creator,
-      companyTitle,
       companyLogo,
       companyDescription,
       companyVideo,

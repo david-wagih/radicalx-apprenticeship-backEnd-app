@@ -103,7 +103,6 @@ export class DbService {
 
   createApprenticeship(
     creator: string,
-    companyTitle: string,
     companyLogo: File,
     companyDescription: string,
     companyVideo: File,
@@ -125,7 +124,6 @@ export class DbService {
     // todo: Create Apprenticeship
     const apprenticeshipData = {
       creator: creator,
-      companyTitle: companyTitle,
       companyLogo: companyLogoReference,
       companyDescription: companyDescription,
       companyVideo: companyVideoReference,
