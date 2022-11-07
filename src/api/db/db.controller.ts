@@ -7,9 +7,9 @@ import {
   Header,
   Delete,
   Request,
+  Put,
 } from '@nestjs/common';
 import { DbService } from './db.service';
-import * as admin from 'firebase-admin';
 
 @Controller()
 export class DbController {
@@ -21,10 +21,12 @@ export class DbController {
     @Request() request: Request,
     @Param() query: string[],
   ) {
-    const authorization: Map<string, string> =
-      request.headers['authorization'].split(' ');
+    const authorizationHeader: string = request.headers['authorization'];
     const userID = query['userID'];
-    return await this.dbService.getUserApprenticeships(authorization, userID);
+    return await this.dbService.getUserApprenticeships(
+      authorizationHeader,
+      userID,
+    );
   }
 
   @Post('create_apprenticeship/:userID')
@@ -34,8 +36,7 @@ export class DbController {
     @Param() query: string[],
     @Body() apprenticeship_details: JSON,
   ) {
-    const authorization: Map<string, string> =
-      request.headers['authorization'].split(' ');
+    const authorizationHeader: string = request.headers['authorization'];
     const creator = query['userID'];
     const apprenticeshipTitle = apprenticeship_details['apprenticeshipTitle'];
     const companyLogo = apprenticeship_details['companyLogo'];
@@ -48,7 +49,7 @@ export class DbController {
     const teamAdmins = apprenticeship_details['teamAdmins'];
     const timeline = apprenticeship_details['timeline'];
     return await this.dbService.createApprenticeship(
-      authorization,
+      authorizationHeader,
       creator,
       companyLogo,
       companyDescription,
@@ -62,14 +63,63 @@ export class DbController {
     );
   }
 
-  @Delete('delete/:apprenticeshipID')
+  @Put('update_apprenticeship/:apprenticeshipID')
+  @Header('content-type', 'application/json')
+  async updateApprenticeship(
+    @Request() request: Request,
+    @Param() query: string[],
+    @Body() apprenticeship_details: JSON,
+  ) {
+    const authorizationHeader: string = request.headers['authorization'];
+    const apprenticeshipID = query['apprenticeshipID'];
+    const creator = query['userID'];
+    const apprenticeshipTitle = apprenticeship_details['apprenticeshipTitle'];
+    const companyLogo = apprenticeship_details['companyLogo'];
+    const companyDescription = apprenticeship_details['companyDescription'];
+    const apprenticeshipDescription =
+      apprenticeship_details['apprenticeshipDescription'];
+    const companyVideo = apprenticeship_details['companyVideo'];
+    const teamType = apprenticeship_details['teamType'];
+    const teamRoles = apprenticeship_details['teamRoles'];
+    const teamAdmins = apprenticeship_details['teamAdmins'];
+    const timeline = apprenticeship_details['timeline'];
+    return await this.dbService.updateApprenticeship(
+      authorizationHeader,
+      creator,
+      apprenticeshipID,
+      companyLogo,
+      companyDescription,
+      companyVideo,
+      apprenticeshipTitle,
+      apprenticeshipDescription,
+      teamType,
+      teamRoles,
+      teamAdmins,
+      timeline,
+    );
+  }
+
+  @Post('duplicate_apprenticeship/:apprenticeshipID')
+  @Header('content-type', 'application/json')
+  async duplicateApprenticeship(
+    @Request() request: Request,
+    @Param() query: string[],
+  ) {
+    const authorizationHeader: string = request.headers['authorization'];
+    const apprenticeshipID = query['apprenticeshipID'];
+    return await this.dbService.duplicateApprenticeship(
+      authorizationHeader,
+      apprenticeshipID,
+    );
+  }
+
+  @Delete('delete_apprenticeship/:apprenticeshipID')
   @Header('content-type', 'application/json')
   async delete(@Request() request: Request, @Param() query: string[]) {
-    const authorization: Map<string, string> =
-      request.headers['authorization'].split(' ');
+    const authorizationHeader: string = request.headers['authorization'];
     const apprenticeshipID = query['apprenticeshipID'];
     return await this.dbService.deleteApprenticeship(
-      authorization,
+      authorizationHeader,
       apprenticeshipID,
     );
   }

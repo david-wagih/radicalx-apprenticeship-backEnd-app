@@ -11,17 +11,25 @@ export class DbService {
     });
   }
 
-  async getUserApprenticeships(userID: string) {
-    const apprenticeships = await admin
-      .firestore()
-      .collection('Apprenticeships')
-      .where('creator', 'in', [userID])
-      .get();
-    return apprenticeships.docs.map((doc) => doc.data());
+  async getUserApprenticeships(authorizationHeader: string, userID: string) {
+    if (AuthService.prototype.checkUser(authorizationHeader)) {
+      const apprenticeships = await admin
+        .firestore()
+        .collection('Apprenticeships')
+        .where('creator', 'in', [userID])
+        .get();
+      return apprenticeships.docs.map((doc) => ({
+        apprenticeshipID: doc.id,
+        apprenticeshipData: doc.data(),
+      }));
+    } else {
+      console.log('User needs to log in first');
+      return 'User needs to log in first';
+    }
   }
 
   async createApprenticeship(
-    authorization: Map<string, string>,
+    authorizationHeader: string,
     creator: string,
     companyLogo: File,
     companyDescription: string,
@@ -33,7 +41,7 @@ export class DbService {
     teamAdmins: [],
     timeline: [],
   ) {
-    if (AuthService.prototype.checkUser(authorization)) {
+    if (AuthService.prototype.checkUser(authorizationHeader)) {
       // todo: upload video and image and get reference
       const references = StorageService.prototype.uploadCompanyData(
         apprenticeshipTitle,
@@ -92,11 +100,88 @@ export class DbService {
     }
   }
 
-  async deleteApprenticeship(
-    authorization: Map<string, string>,
+  async updateApprenticeship(
+    authorizationHeader: string,
+    apprenticeshipID: string,
+    creator: string,
+    companyLogo: File,
+    companyDescription: string,
+    companyVideo: File,
+    apprenticeshipTitle: string,
+    apprenticeshipDescription: string,
+    teamType: string,
+    teamRoles: [],
+    teamAdmins: [],
+    timeline: [],
+  ) {
+    if (AuthService.prototype.checkUser(authorizationHeader)) {
+      const references = StorageService.prototype.uploadCompanyData(
+        apprenticeshipTitle,
+        companyLogo,
+        companyVideo,
+      );
+      const companyVideoReference = references['video'];
+      const companyLogoReference = references['logo'];
+      const apprenticeshipData = {
+        creator: creator,
+        companyLogo: companyLogoReference,
+        companyDescription: companyDescription,
+        companyVideo: companyVideoReference,
+        apprenticeshipTitle: apprenticeshipTitle,
+        apprenticeshipDescription: apprenticeshipDescription,
+        teamType: teamType,
+        teamRoles: teamRoles,
+        teamAdmins: teamAdmins,
+        timeline: timeline,
+      };
+      await admin
+        .firestore()
+        .collection('Apprenticeships')
+        .doc(apprenticeshipID)
+        .update(apprenticeshipData);
+    } else {
+      console.log('User needs to log in first');
+      return 'User needs to log in first';
+    }
+  }
+
+  async duplicateApprenticeship(
+    authorizationHeader: string,
     apprenticeshipID: string,
   ) {
-    if (AuthService.prototype.checkUser(authorization)) {
+    if (AuthService.prototype.checkUser(authorizationHeader)) {
+      const apprenticeshipData = await admin
+        .firestore()
+        .collection('Apprenticeships')
+        .doc(apprenticeshipID)
+        .get();
+      await admin
+        .firestore()
+        .collection('Apprenticeships')
+        .add(apprenticeshipData);
+      const creator: string = apprenticeshipData.data()['creator'];
+      const apprenticeshipRef = apprenticeshipData.id;
+      await admin
+        .firestore()
+        .collection('Users')
+        .doc(creator)
+        .update({
+          apprenticeships:
+            admin.firestore.FieldValue.arrayUnion(apprenticeshipRef),
+        });
+      console.log('Apprenticehsip duplicated');
+      return 'Apprenticehsip duplicated';
+    } else {
+      console.log('User needs to log in first');
+      return 'User needs to log in first';
+    }
+  }
+
+  async deleteApprenticeship(
+    authorizationHeader: string,
+    apprenticeshipID: string,
+  ) {
+    if (AuthService.prototype.checkUser(authorizationHeader)) {
       admin
         .firestore()
         .collection('Apprenticeships')
@@ -106,7 +191,7 @@ export class DbService {
           (
             apprenticeshipData: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>,
           ) => {
-            const userID = apprenticeshipData.data['creator'];
+            const userID = apprenticeshipData.data()['creator'];
             admin
               .firestore()
               .collection('Apprenticeships')

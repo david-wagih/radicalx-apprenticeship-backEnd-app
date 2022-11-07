@@ -22,14 +22,14 @@ import {
 @Injectable()
 export class AuthService {
   async signup(
-    authorization: Map<string, string>,
+    authorizationHeader: string,
     email: string,
     password: string,
     username: string,
     phoneNumber: string,
   ) {
     try {
-      if (!(await this.checkUser(authorization))) {
+      if (!(await this.checkUser(authorizationHeader))) {
         const userConfig: CreateRequest = {
           displayName: username,
           email: email,
@@ -42,7 +42,7 @@ export class AuthService {
         };
         const userRecord = await admin.auth().createUser(userConfig);
         DbService.prototype.createUserRecord(userRecord.uid);
-        return this.Login(authorization, email, password, false);
+        return this.Login(authorizationHeader, email, password, false);
       } else {
         return 'You are already logged in';
       }
@@ -53,13 +53,13 @@ export class AuthService {
   }
 
   async Login(
-    authorization: Map<string, string>,
+    authorizationHeader: string,
     email: string,
     password: string,
     rememberMe: boolean,
   ) {
     try {
-      if (!(await this.checkUser(authorization))) {
+      if (!(await this.checkUser(authorizationHeader))) {
         const auth = getAuth();
         const persistence =
           rememberMe == true
@@ -92,7 +92,7 @@ export class AuthService {
   }
 
   async updateUser(
-    authorization: Map<string, string>,
+    authorizationHeader: string,
     email: string,
     password: string,
     phoneNumber: string,
@@ -102,7 +102,7 @@ export class AuthService {
   ) {
     try {
       const auth = getAuth();
-      if (!(await this.checkUser(authorization))) {
+      if (!(await this.checkUser(authorizationHeader))) {
         const updateRequest: UpdateRequest = {
           displayName: displayName ?? auth.currentUser.displayName,
           email: email ?? auth.currentUser.email,
@@ -125,8 +125,8 @@ export class AuthService {
     }
   }
 
-  async remove(authorization: Map<string, string>) {
-    if (!this.checkUser(authorization)) {
+  async remove(authorizationHeader: string) {
+    if (!this.checkUser(authorizationHeader)) {
       try {
         const auth: Auth = getAuth();
         await admin.auth().deleteUser(auth.currentUser.uid);
@@ -142,8 +142,8 @@ export class AuthService {
     }
   }
 
-  async signout(authorization: Map<string, string>) {
-    if (!this.checkUser(authorization)) {
+  async signout(authorizationHeader: string) {
+    if (!this.checkUser(authorizationHeader)) {
       try {
         const auth = getAuth();
         await auth.signOut();
@@ -159,7 +159,7 @@ export class AuthService {
     }
   }
 
-  async checkUser(token: Map<string, string>) {
+  async checkUser(authorizationHeader: string) {
     const auth = getAuth();
     const user = auth.currentUser;
     if (user) {
@@ -174,10 +174,12 @@ export class AuthService {
         return true;
       }
     } else {
-      if (token.size > 0) {
+      const authorization =
+        this.extractAuthorizationHeader(authorizationHeader);
+      if (authorization['mode'] == 'Bearer') {
         const userCredential: UserCredential = await signInWithCustomToken(
           auth,
-          token[''],
+          authorization['token'],
         );
         if (userCredential) {
           return true;
@@ -204,8 +206,8 @@ export class AuthService {
     );
   }
 
-  async passwordResetEmail(authorization: Map<string, string>, email: string) {
-    if (!this.checkUser(authorization)) {
+  async passwordResetEmail(authorizationHeader: string, email: string) {
+    if (!this.checkUser(authorizationHeader)) {
       try {
         const auth = getAuth();
         await sendPasswordResetEmail(auth, email);
@@ -225,11 +227,11 @@ export class AuthService {
   }
 
   async confirmPasswordReset(
-    authorization: Map<string, string>,
+    authorizationHeader: string,
     code: string,
     newPassword: string,
   ) {
-    if (!this.checkUser(authorization)) {
+    if (!this.checkUser(authorizationHeader)) {
       const auth = getAuth();
       confirmPasswordReset(auth, code, newPassword).then(
         () => {
@@ -244,5 +246,19 @@ export class AuthService {
       console.log('You are already logged in');
       return 'You are already logged in';
     }
+  }
+
+  async extractAuthorizationHeader(authorizationHeader: string) {
+    let authorization: Map<string, string>;
+    if (authorizationHeader) {
+      const mode = authorizationHeader.split(' ')[0];
+      const token = authorizationHeader.split(' ')[1];
+      authorization.set('mode', mode);
+      authorization.set('token', token);
+    } else {
+      authorization.set('mode', 'none');
+      authorization.set('token', 'none');
+    }
+    return authorization;
   }
 }

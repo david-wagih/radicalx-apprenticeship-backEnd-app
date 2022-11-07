@@ -16,14 +16,13 @@ export class AuthController {
   @Post('signup')
   @Header('Content-Type', 'application/json')
   async registerUser(@Request() request: Request, @Body() userDetails: JSON) {
-    const authorization: Map<string, string> =
-      request.headers['authorization'].split(' ');
+    const authorizationHeader: string = request.headers['authorization'];
     const email = userDetails['email'];
     const password = userDetails['password'];
     const username = userDetails['username'];
     const phoneNumber = userDetails['phoneNumber'];
     return await this.authService.signup(
-      authorization,
+      authorizationHeader,
       email,
       password,
       username,
@@ -38,10 +37,9 @@ export class AuthController {
     const email = userCredentials['email'];
     const password = userCredentials['password'];
     const rememberMe = userCredentials['rememberMe'];
-    const authorization: Map<string, string> =
-      request.headers['authorization'].split(' ');
+    const authorizationHeader: string = request.headers['authorization'];
     return await this.authService.Login(
-      authorization,
+      authorizationHeader,
       email,
       password,
       rememberMe,
@@ -53,7 +51,7 @@ export class AuthController {
   @Patch('update')
   @Header('Content-Type', 'application/json')
   async updateUser(@Request() request: Request, @Body() userDetails: JSON) {
-    const authorization: Map<string, string> =
+    const authorizationHeader: string =
       request.headers['authorization'].split(' ');
     const email = userDetails['email'];
     const phoneNumber = userDetails['phoneNumber'];
@@ -62,7 +60,7 @@ export class AuthController {
     const disabled = userDetails['disabled'];
     const password = userDetails['password'];
     return await this.authService.updateUser(
-      authorization,
+      authorizationHeader,
       email,
       password,
       phoneNumber,
@@ -75,36 +73,39 @@ export class AuthController {
   //User Remove User
   @Delete('remove') //todo: get data from DTO
   async removeUser(@Request() request: Request) {
-    const authorization: Map<string, string> =
+    const authorizationHeader: string =
       request.headers['authorization'].split(' ');
-    return await this.authService.remove(authorization);
+    return await this.authService.remove(authorizationHeader);
   }
 
   @Post('signout')
   async signout(@Request() request: Request) {
-    const authorization: Map<string, string> =
+    const authorizationHeader: string =
       request.headers['authorization'].split(' ');
-    return await this.authService.signout(authorization);
+    return await this.authService.signout(authorizationHeader);
   }
 
   @Post('passwordResetEmail')
   @Header('Content-Type', 'application/json')
   async passwordResetEmail(@Request() request: Request, @Body() data: JSON) {
-    const authorization: Map<string, string> =
+    const authorizationHeader: string =
       request.headers['authorization'].split(' ');
     const email = data['email'];
-    return await this.authService.passwordResetEmail(authorization, email);
+    return await this.authService.passwordResetEmail(
+      authorizationHeader,
+      email,
+    );
   }
 
   @Post('confirmPasswordReset')
   @Header('Content-Type', 'application/json')
   async resetPassword(@Request() request: Request, @Body() data: JSON) {
-    const authorization: Map<string, string> =
+    const authorizationHeader: string =
       request.headers['authorization'].split(' ');
     const oobCode = data['oobCode'];
     const password = data['password'];
     return await this.authService.confirmPasswordReset(
-      authorization,
+      authorizationHeader,
       oobCode,
       password,
     );

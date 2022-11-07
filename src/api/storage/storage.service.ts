@@ -55,6 +55,8 @@ export class StorageService {
     return this.uploadCompanyData(apprenticeshipID, companyLogo, companyVideo);
   }
   removeCompanyData(apprenticeshipID: string) {
+    console.log('Company Date Delete');
+    return 'Company Data Deleted';
     const deleteFilesOptions = {
       prefix: 'apprenticeships/' + apprenticeshipID + '/',
     };
@@ -115,5 +117,4 @@ export class StorageService {
   //     file: file.buffer.toString(),
   //   };
   // }
-
 }
