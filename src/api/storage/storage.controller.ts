@@ -12,16 +12,16 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StorageService } from './storage.service';
 
-@Controller('storage')
+@Controller()
 export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
   @UseInterceptors(FileInterceptor('file'))
-  @Post()
-  uploadData(@Body() data, @UploadedFiles() files) {
+  @Post('uploadCompanyData/apprenticeshipID')
+  uploadData(@Param() query: string[], @Body() data, @UploadedFiles() files) {
     const companyVideo = data['companyVideo'];
     const companyLogo = data['companyLogo'];
-    const apprenticeshipID = data['apprenticeshipID'];
+    const apprenticeshipID = query['apprenticeshipID'];
     return this.storageService.uploadCompanyData(
       apprenticeshipID,
       companyVideo,
