@@ -4,101 +4,19 @@ import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class DbService {
-  // create() {
-  //   admin
-  //     .firestore()
-  //     .collection('user')
-  //     .add({
-  //       email: 'tester2@test.test',
-  //       password: 'test321',
-  //     })
-  //     .then(() => {
-  //       console.log('Add record successfully');
-  //       return 'added record successfully';
-  //     })
-  //     .catch((e) => {
-  //       console.error(e);
-  //     });
-  //   return 'This action adds a new db';
-  // }
-
   createUserRecord(userID: string) {
     admin.firestore().collection('Users').doc(userID).set({
       apprenticeships: [],
     });
   }
 
-  getUserApprenticeships(userID: string) {
-    const apprenticeships = [];
-    admin
+  async getUserApprenticeships(userID: string) {
+    const apprenticeships = await admin
       .firestore()
       .collection('Apprenticeships')
       .where('creator', 'in', [userID])
-      .get()
-      .then(
-        (
-          apprenticeshipList: admin.firestore.QuerySnapshot<admin.firestore.DocumentData>,
-        ) => {
-          apprenticeshipList.docs.forEach(
-            (
-              apprenticeship: admin.firestore.QueryDocumentSnapshot<admin.firestore.DocumentData>,
-            ) => {
-              //Getting the data required per appreticeship
-              const teamRoles = [];
-              const teamAdmins = [];
-              apprenticeship.data()['teamRoles'].foreach((teamRole) => {
-                const roleName = teamRole['roleName'];
-                const roleDescription = teamRole['roleDescription'];
-                const requiredSkills = teamRole['RequiredSkills'];
-                const complementarySkills = teamRole['ComplementarySkills'];
-                const minHours = teamRole['minHours'];
-                const locationPreferences = teamRole['locationPreferences'];
-                teamRoles.push({
-                  roleName: roleName,
-                  roleDescription: roleDescription,
-                  requiredSkills: requiredSkills,
-                  complementarySkills: complementarySkills,
-                  minHours: minHours,
-                  locationPreferences: locationPreferences,
-                });
-              });
-              apprenticeship.data()['teamAdmins'].foreach((teamAdmin) => {
-                teamAdmins.push({
-                  name: teamAdmin['name'],
-                  email: teamAdmin['email'],
-                  linkedin: teamAdmin['linkedin'],
-                  logo: teamAdmin['logo'],
-                });
-              });
-              // Push into apprenticeship List
-              apprenticeships.push({
-                id: apprenticeship.id,
-                apprenticeshipData: {
-                  apprenticeshipTitle:
-                    apprenticeship.data()['apprenticeshipTitle'],
-                  companyLogo: apprenticeship.data()['companyLogo'],
-                  companyDescription:
-                    apprenticeship.data()['companyDescription'],
-                  apprenticeshipDescription:
-                    apprenticeship.data()['apprenticeshipDescription'],
-                  companyVideo: apprenticeship.data()['companyLogo'],
-                  teamType: apprenticeship.data()['teamType'],
-                  teamRoles: teamRoles,
-                  teamAdmins: teamAdmins,
-                  timeline: {
-                    startDate: apprenticeship.data()['timeline']['startDate'],
-                    endDate: apprenticeship.data()['timeline']['endDate'],
-                  },
-                },
-              });
-            },
-          );
-          return apprenticeships;
-        },
-        (reason) => {
-          console.error(reason);
-        },
-      );
+      .get();
+    return apprenticeships.docs.map((doc) => doc.data());
   }
 
   createApprenticeship(

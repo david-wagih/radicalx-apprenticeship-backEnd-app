@@ -8,6 +8,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { DbService } from './db.service';
+import * as admin from 'firebase-admin';
 
 @Controller()
 export class DbController {
@@ -15,9 +16,10 @@ export class DbController {
 
   @Get('data/:userID')
   @Header('content-type', 'application/json')
-  GetUserApprenticeships(@Param() query: string[]) {
+  async GetUserApprenticeships(@Param() query: string[]) {
     const userID = query['userID'];
-    return this.dbService.getUserApprenticeships(userID);
+    const res = await this.dbService.getUserApprenticeships(userID);
+    return res;
   }
 
   @Post('create_apprenticeship/:userID')
