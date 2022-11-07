@@ -6,6 +6,7 @@ import {
   Param,
   Header,
   Delete,
+  Request,
 } from '@nestjs/common';
 import { DbService } from './db.service';
 
@@ -15,17 +16,25 @@ export class DbController {
 
   @Get('data/:userID')
   @Header('content-type', 'application/json')
-  GetUserApprenticeships(@Param() query: string[]) {
+  async GetUserApprenticeships(
+    @Request() request: Request,
+    @Param() query: string[],
+  ) {
+    const authorization: Map<string, string> =
+      request.headers['authorization'].split(' ');
     const userID = query['userID'];
-    return this.dbService.getUserApprenticeships(userID);
+    return await this.dbService.getUserApprenticeships(authorization, userID);
   }
 
   @Post('create_apprenticeship/:userID')
   @Header('content-type', 'application/json')
-  createApprenticeship(
+  async createApprenticeship(
+    @Request() request: Request,
     @Param() query: string[],
     @Body() apprenticeship_details: JSON,
   ) {
+    const authorization: Map<string, string> =
+      request.headers['authorization'].split(' ');
     const creator = query['userID'];
     const apprenticeshipTitle = apprenticeship_details['apprenticeshipTitle'];
     const companyLogo = apprenticeship_details['companyLogo'];
@@ -37,7 +46,8 @@ export class DbController {
     const teamRoles = apprenticeship_details['teamRoles'];
     const teamAdmins = apprenticeship_details['teamAdmins'];
     const timeline = apprenticeship_details['timeline'];
-    return this.dbService.createApprenticeship(
+    return await this.dbService.createApprenticeship(
+      authorization,
       creator,
       companyLogo,
       companyDescription,
@@ -53,8 +63,13 @@ export class DbController {
 
   @Delete('delete/:apprenticeshipID')
   @Header('content-type', 'application/json')
-  delete(@Param() query: string[]) {
+  async delete(@Request() request: Request, @Param() query: string[]) {
+    const authorization: Map<string, string> =
+      request.headers['authorization'].split(' ');
     const apprenticeshipID = query['apprenticeshipID'];
-    return this.dbService.deleteApprenticeship(apprenticeshipID);
+    return await this.dbService.deleteApprenticeship(
+      authorization,
+      apprenticeshipID,
+    );
   }
 }

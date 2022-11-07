@@ -1,10 +1,11 @@
- import {
+import {
   Controller,
   Post,
   Body,
   Patch,
   Delete,
   Header,
+  Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
@@ -14,36 +15,54 @@ export class AuthController {
 
   @Post('signup')
   @Header('Content-Type', 'application/json')
-  registerUser(@Body() userDetails: JSON) {
+  async registerUser(@Request() request: Request, @Body() userDetails: JSON) {
+    const authorization: Map<string, string> =
+      request.headers['authorization'].split(' ');
     const email = userDetails['email'];
     const password = userDetails['password'];
     const username = userDetails['username'];
     const phoneNumber = userDetails['phoneNumber'];
-    return this.authService.signup(email, password, username, phoneNumber);
+    return await this.authService.signup(
+      authorization,
+      email,
+      password,
+      username,
+      phoneNumber,
+    );
   }
 
   // User Logging in
   @Post('login')
   @Header('Content-Type', 'application/json')
-  LoginUser(@Body() userCredentials: JSON) {
+  async LoginUser(@Request() request: Request, @Body() userCredentials: JSON) {
     const email = userCredentials['email'];
     const password = userCredentials['password'];
     const rememberMe = userCredentials['rememberMe'];
-    return this.authService.Login(email, password, rememberMe);
+    const authorization: Map<string, string> =
+      request.headers['authorization'].split(' ');
+    return await this.authService.Login(
+      authorization,
+      email,
+      password,
+      rememberMe,
+    );
   }
 
   // User Update Account Data
 
   @Patch('update')
   @Header('Content-Type', 'application/json')
-  updateUser(@Body() userDetails: JSON) {
+  async updateUser(@Request() request: Request, @Body() userDetails: JSON) {
+    const authorization: Map<string, string> =
+      request.headers['authorization'].split(' ');
     const email = userDetails['email'];
     const phoneNumber = userDetails['phoneNumber'];
     const username = userDetails['username'];
     const photoURL = userDetails['photoURL'];
     const disabled = userDetails['disabled'];
     const password = userDetails['password'];
-    return this.authService.updateUser(
+    return await this.authService.updateUser(
+      authorization,
       email,
       password,
       phoneNumber,
@@ -55,28 +74,39 @@ export class AuthController {
 
   //User Remove User
   @Delete('remove') //todo: get data from DTO
-  removeUser() {
-    return this.authService.remove();
+  async removeUser(@Request() request: Request) {
+    const authorization: Map<string, string> =
+      request.headers['authorization'].split(' ');
+    return await this.authService.remove(authorization);
   }
 
   @Post('signout')
-  signout() {
-    return this.authService.signout();
+  async signout(@Request() request: Request) {
+    const authorization: Map<string, string> =
+      request.headers['authorization'].split(' ');
+    return await this.authService.signout(authorization);
   }
 
-  @Post('passwordResetEmail') //Done by Omar
+  @Post('passwordResetEmail')
   @Header('Content-Type', 'application/json')
-  passwordResetEmail(@Body() data: JSON) {
+  async passwordResetEmail(@Request() request: Request, @Body() data: JSON) {
+    const authorization: Map<string, string> =
+      request.headers['authorization'].split(' ');
     const email = data['email'];
-
-    return this.authService.passwordResetEmail(email);
+    return await this.authService.passwordResetEmail(authorization, email);
   }
 
   @Post('confirmPasswordReset')
   @Header('Content-Type', 'application/json')
-  resetPassword(@Body() data: JSON) {
+  async resetPassword(@Request() request: Request, @Body() data: JSON) {
+    const authorization: Map<string, string> =
+      request.headers['authorization'].split(' ');
     const oobCode = data['oobCode'];
     const password = data['password'];
-    return this.authService.confirmPasswordReset(oobCode, password);
+    return await this.authService.confirmPasswordReset(
+      authorization,
+      oobCode,
+      password,
+    );
   }
 }

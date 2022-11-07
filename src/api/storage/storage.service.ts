@@ -72,4 +72,48 @@ export class StorageService {
         },
       );
   }
+
+  // async uploadFile(
+  //   companyName: string,
+  //   filePath: string,
+  //   fileName: string,
+  //   fileType: string,
+  // ) {
+  //   const bucket = admin.storage().bucket();
+  //   const uploadOptions = {
+  //     public: true,
+  //     destination: 'Companies/' + companyName + '/' + fileType + '/' + fileName,
+  //     gzip: true,
+  //     metadata: {
+  //       firebaseStorageDownloadTokens: uuidv4(),
+  //       contentType: 'image/png',
+  //       cacheControl: 'public, max-age:31536000',
+  //     },
+  //   };
+
+  //   const storage = await bucket.upload(filePath, uploadOptions);
+  //   console.log(storage[0].metadata.mediaLink);
+  //   return storage[0].metadata.mediaLink;
+  // }
+
+  // uploadFileAndPassValidation(
+  //   @UploadedFile(
+  //     new ParseFilePipeBuilder()
+  //       .addFileTypeValidator({
+  //         fileType: 'jpeg',
+  //       })
+  //       .addMaxSizeValidator({
+  //         maxSize: 1000
+  //       })
+  //       .build({
+  //         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+  //       }),
+  //   )
+  //   file: Express.Multer.File,
+  // ) {
+  //   return {
+  //     file: file.buffer.toString(),
+  //   };
+  // }
+
 }

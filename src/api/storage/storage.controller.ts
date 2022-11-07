@@ -1,12 +1,15 @@
-import { Controller, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors } from '@nestjs/common';
+
+import { FileInterceptor } from '@nestjs/platform-express';
 import { StorageService } from './storage.service';
 
 @Controller('storage')
 export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
+  @UseInterceptors(FileInterceptor('file'))
   @Post()
-  uploadData(@Body() data) {
+  uploadData(@Body() data, @UploadedFiles() files) {
     const companyVideo = data['companyVideo'];
     const companyLogo = data['companyLogo'];
     const apprenticeshipID = data['apprenticeshipID'];

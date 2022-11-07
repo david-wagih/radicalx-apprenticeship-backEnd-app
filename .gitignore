@@ -36,4 +36,5 @@ lerna-debug.log*
 
 # Environtment
 .env
+.env.local
 service_account.json

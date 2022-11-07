@@ -16,17 +16,20 @@ import {
   browserSessionPersistence,
   setPersistence,
   signInWithCustomToken,
+  Auth,
+  UserCredential,
 } from 'firebase/auth';
 @Injectable()
 export class AuthService {
   async signup(
+    authorization: Map<string, string>,
     email: string,
     password: string,
     username: string,
     phoneNumber: string,
   ) {
     try {
-      if ((await this.checkUser()) != true) {
+      if (!(await this.checkUser(authorization))) {
         const userConfig: CreateRequest = {
           displayName: username,
           email: email,
@@ -39,7 +42,7 @@ export class AuthService {
         };
         const userRecord = await admin.auth().createUser(userConfig);
         DbService.prototype.createUserRecord(userRecord.uid);
-        return this.Login(email, password, false);
+        return this.Login(authorization, email, password, false);
       } else {
         return 'You are already logged in';
       }
@@ -49,9 +52,14 @@ export class AuthService {
     }
   }
 
-  async Login(email: string, password: string, rememberMe: boolean) {
+  async Login(
+    authorization: Map<string, string>,
+    email: string,
+    password: string,
+    rememberMe: boolean,
+  ) {
     try {
-      if ((await this.checkUser()) != true) {
+      if (!(await this.checkUser(authorization))) {
         const auth = getAuth();
         const persistence =
           rememberMe == true
@@ -63,17 +71,15 @@ export class AuthService {
           email,
           password,
         );
-        //NOTE disable the email verification for now
-        // if (userCredential.user.emailVerified == false) {
-        //   return await this.verifyEmail(auth.currentUser);
-        // }
+        if (userCredential.user.emailVerified == false) {
+          return await this.verifyEmail(auth.currentUser);
+        }
         // Signed in and verified
         console.log('Logged in Successfully');
-        const user = userCredential.user; // todo: save user session in browser storage to avoid logout if server restarts
-        const developerClaims = userCredential.user.toJSON();
-        const customToken = await admin
+        const user: User = userCredential.user;
+        const customToken: string = await admin
           .auth()
-          .createCustomToken(user.uid, developerClaims);
+          .createCustomToken(user.uid);
         return { userID: user.uid, customToken: customToken };
       } else {
         console.log('You are already logged in');
@@ -86,6 +92,7 @@ export class AuthService {
   }
 
   async updateUser(
+    authorization: Map<string, string>,
     email: string,
     password: string,
     phoneNumber: string,
@@ -95,7 +102,7 @@ export class AuthService {
   ) {
     try {
       const auth = getAuth();
-      if (await this.checkUser()) {
+      if (!(await this.checkUser(authorization))) {
         const updateRequest: UpdateRequest = {
           displayName: displayName ?? auth.currentUser.displayName,
           email: email ?? auth.currentUser.email,
@@ -118,72 +125,72 @@ export class AuthService {
     }
   }
 
-  async remove() {
-    if (this.checkUser()) {
-      const auth = getAuth();
-      admin
-        .auth()
-        .deleteUser(auth.currentUser.uid)
-        .then(() => {
-          console.log('Deleted user ' + auth.currentUser.uid + ' successfully');
-          return 'Deleted user ' + auth.currentUser.uid + 'successfully';
-        })
-        .catch((error) => {
-          console.error('Error deleting user:', error);
-        });
+  async remove(authorization: Map<string, string>) {
+    if (!this.checkUser(authorization)) {
+      try {
+        const auth: Auth = getAuth();
+        await admin.auth().deleteUser(auth.currentUser.uid);
+        console.log('User deleted successfully');
+        return 'User deleted successfully';
+      } catch (err) {
+        console.error(err);
+        return err;
+      }
     } else {
       console.log('You need to be logged in to remove the user');
       return 'You need to be logged in to remove the user';
     }
   }
 
-  signout() {
-    const auth = getAuth();
-    auth.signOut().then(
-      () => {
+  async signout(authorization: Map<string, string>) {
+    if (!this.checkUser(authorization)) {
+      try {
+        const auth = getAuth();
+        await auth.signOut();
         console.log('You signed out successfully');
         return 'You logged out successfully';
-      },
-      (err) => {
-        console.log(err);
+      } catch (err) {
+        console.error(err);
         return err;
-      },
-    );
+      }
+    } else {
+      console.log('You need to be logged in to be able to sign out');
+      return 'You need to be logged in to be able to sign out';
+    }
   }
 
-  checkUser(customToken?: string) {
+  async checkUser(token: Map<string, string>) {
     const auth = getAuth();
-
     const user = auth.currentUser;
     if (user) {
-      if (user.emailVerified == false) {
-        console.log(
-          'You need to verify your email to access this page. A verification email has been sent to your email',
-        );
-        return false;
+      if (user.emailVerified) {
+        return true;
       } else {
-        console.log('User already logged in');
+        // Removed for testing purposes
+        // console.log(
+        //   'You need to verify your email to access this page. A verification email has been sent to your email',
+        // );
+        // return false;
         return true;
       }
     } else {
-      if (customToken) {
-        signInWithCustomToken(auth, customToken).then(
-          () => {
-            return true;
-          },
-          (result) => {
-            console.error(result);
-            return false;
-          },
+      if (token.size > 0) {
+        const userCredential: UserCredential = await signInWithCustomToken(
+          auth,
+          token[''],
         );
+        if (userCredential) {
+          return true;
+        } else {
+          return false;
+        }
       } else {
-        console.log('User needs to log in');
-        return false; // No user is logged in.
+        return false;
       }
     }
   }
 
-  verifyEmail(user: User) {
+  async verifyEmail(user: User) {
     sendEmailVerification(user);
     console.log(
       'You need to verify your email. The activation email has been sent to ' +
@@ -197,31 +204,32 @@ export class AuthService {
     );
   }
 
-  passwordResetEmail(email: string) {
-    if (this.checkUser()) {
+  async passwordResetEmail(authorization: Map<string, string>, email: string) {
+    if (!this.checkUser(authorization)) {
+      try {
+        const auth = getAuth();
+        await sendPasswordResetEmail(auth, email);
+        console.log(
+          'The reset email has been sent to ' +
+            email +
+            '. Please check your email for the reset link',
+        );
+      } catch (err) {
+        console.error(err);
+        return err;
+      }
+    } else {
       console.log('You are already logged in');
       return 'You are already logged in';
-    } else {
-      const auth = getAuth();
-      sendPasswordResetEmail(auth, email)
-        .then(() => {
-          console.log(
-            'The reset email has been sent to ' +
-              email +
-              '. Please check your email for the reset link',
-          );
-        })
-        .catch((err) => {
-          console.error('Error sending reset email:', err);
-        });
     }
   }
 
-  confirmPasswordReset(code: string, newPassword: string) {
-    if (this.checkUser()) {
-      console.log('You are already logged in');
-      return 'You are already logged in';
-    } else {
+  async confirmPasswordReset(
+    authorization: Map<string, string>,
+    code: string,
+    newPassword: string,
+  ) {
+    if (!this.checkUser(authorization)) {
       const auth = getAuth();
       confirmPasswordReset(auth, code, newPassword).then(
         () => {
@@ -232,6 +240,9 @@ export class AuthService {
           console.error(reason);
         },
       );
+    } else {
+      console.log('You are already logged in');
+      return 'You are already logged in';
     }
   }
 }
