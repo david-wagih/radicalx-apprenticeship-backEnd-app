@@ -17,24 +17,29 @@ export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
   @UseInterceptors(FileInterceptor('file'))
-  @Post('uploadCompanyData/apprenticeshipID')
-  uploadData(@Param() query: string[], @Body() data, @UploadedFiles() files) {
+  @Post('uploadCompanyData/:apprenticeshipID')
+  async uploadData(
+    @Param() query: string[],
+    @Body() data,
+    @UploadedFiles() files,
+  ) {
     const companyVideo = data['companyVideo'];
     const companyLogo = data['companyLogo'];
     const apprenticeshipID = query['apprenticeshipID'];
-    return this.storageService.uploadCompanyData(
+    return await this.storageService.uploadCompanyData(
       apprenticeshipID,
       companyVideo,
       companyLogo,
     );
   }
 
-  @Patch()
-  updateData(@Param() query: string[], @Body() data) {
-    const apprenticeshipID = data['apprenticeshipID'];
+  @UseInterceptors(FileInterceptor('file'))
+  @Patch('update_apprenticeship/:apprenticeshipID')
+  async updateData(@Param() query: string[], @Body() data) {
+    const apprenticeshipID = query['apprenticeshipID'];
     const companyVideo = data['companyVideo'];
     const companyLogo = data['companyLogo'];
-    return this.storageService.updateCompanyData(
+    return await this.storageService.updateCompanyData(
       apprenticeshipID,
       companyVideo,
       companyLogo,
@@ -42,8 +47,8 @@ export class StorageController {
   }
 
   @Delete()
-  removeData(@Param() query: string[]) {
+  async removeData(@Param() query: string[]) {
     const apprenticeshipID = query['apprenticeshipID'];
-    return this.storageService.removeCompanyData(apprenticeshipID);
+    return await this.storageService.removeCompanyData(apprenticeshipID);
   }
 }

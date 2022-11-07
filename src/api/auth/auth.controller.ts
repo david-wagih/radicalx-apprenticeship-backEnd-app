@@ -51,8 +51,7 @@ export class AuthController {
   @Patch('update')
   @Header('Content-Type', 'application/json')
   async updateUser(@Request() request: Request, @Body() userDetails: JSON) {
-    const authorizationHeader: string =
-      request.headers['authorization'].split(' ');
+    const authorizationHeader: string = request.headers['authorization'];
     const email = userDetails['email'];
     const phoneNumber = userDetails['phoneNumber'];
     const username = userDetails['username'];
@@ -73,23 +72,20 @@ export class AuthController {
   //User Remove User
   @Delete('remove') //todo: get data from DTO
   async removeUser(@Request() request: Request) {
-    const authorizationHeader: string =
-      request.headers['authorization'].split(' ');
+    const authorizationHeader: string = request.headers['authorization'];
     return await this.authService.remove(authorizationHeader);
   }
 
   @Post('signout')
   async signout(@Request() request: Request) {
-    const authorizationHeader: string =
-      request.headers['authorization'].split(' ');
+    const authorizationHeader: string = request.headers['authorization'];
     return await this.authService.signout(authorizationHeader);
   }
 
   @Post('passwordResetEmail')
   @Header('Content-Type', 'application/json')
   async passwordResetEmail(@Request() request: Request, @Body() data: JSON) {
-    const authorizationHeader: string =
-      request.headers['authorization'].split(' ');
+    const authorizationHeader: string = request.headers['authorization'];
     const email = data['email'];
     return await this.authService.passwordResetEmail(
       authorizationHeader,
@@ -100,8 +96,7 @@ export class AuthController {
   @Post('confirmPasswordReset')
   @Header('Content-Type', 'application/json')
   async resetPassword(@Request() request: Request, @Body() data: JSON) {
-    const authorizationHeader: string =
-      request.headers['authorization'].split(' ');
+    const authorizationHeader: string = request.headers['authorization'];
     const oobCode = data['oobCode'];
     const password = data['password'];
     return await this.authService.confirmPasswordReset(
