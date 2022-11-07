@@ -9,6 +9,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { DbService } from './db.service';
+import * as admin from 'firebase-admin';
 
 @Controller()
 export class DbController {
