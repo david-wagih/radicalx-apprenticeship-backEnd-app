@@ -253,12 +253,15 @@ export class AuthService {
     if (authorizationHeader) {
       const mode = authorizationHeader.split(' ')[0];
       const token = authorizationHeader.split(' ')[1];
-      authorization.set('mode', mode);
-      authorization.set('token', token);
+      return {
+        'mode': mode,
+        'token': token,
+      }
     } else {
-      authorization.set('mode', 'none');
-      authorization.set('token', 'none');
+      return {
+        'mode': 'None',
+        'token': 'NA',
+      }
     }
-    return authorization;
   }
 }

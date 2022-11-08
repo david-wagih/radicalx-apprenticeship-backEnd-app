@@ -158,7 +158,7 @@ export class DbService {
       await admin
         .firestore()
         .collection('Apprenticeships')
-        .add(apprenticeshipData);
+        .add(apprenticeshipData.data());
       const creator: string = apprenticeshipData.data()['creator'];
       const apprenticeshipRef = apprenticeshipData.id;
       await admin
