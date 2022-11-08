@@ -150,24 +150,24 @@ export class DbService {
     apprenticeshipID: string,
   ) {
     if (AuthService.prototype.checkUser(authorizationHeader)) {
-      const apprenticeship = await admin
+      const oldApprenticeship = await admin
         .firestore()
         .collection('Apprenticeships')
         .doc(apprenticeshipID)
         .get();
-      await admin
+      const newApprenticeship = await admin
         .firestore()
         .collection('Apprenticeships')
-        .add(apprenticeship.data());
-      const creator: string = apprenticeship.data()['creator'];
-      const apprenticeshipRef = apprenticeship.id;
-      await admin
+        .add(oldApprenticeship.data());
+      const creator: string = oldApprenticeship.data()['creator'];
+      admin
         .firestore()
         .collection('Users')
         .doc(creator)
         .update({
-          apprenticeships:
-            admin.firestore.FieldValue.arrayUnion(apprenticeshipRef),
+          apprenticeships: admin.firestore.FieldValue.arrayUnion(
+            newApprenticeship.id,
+          ),
         });
       console.log('Apprenticehsip duplicated');
       return 'Apprenticehsip duplicated';
