@@ -150,7 +150,7 @@ export class DbService {
     apprenticeshipID: string,
   ) {
     if (AuthService.prototype.checkUser(authorizationHeader)) {
-      const apprenticeshipData = await admin
+      const apprenticeship = await admin
         .firestore()
         .collection('Apprenticeships')
         .doc(apprenticeshipID)
@@ -158,9 +158,9 @@ export class DbService {
       await admin
         .firestore()
         .collection('Apprenticeships')
-        .add(apprenticeshipData.data());
-      const creator: string = apprenticeshipData.data()['creator'];
-      const apprenticeshipRef = apprenticeshipData.id;
+        .add(apprenticeship.data());
+      const creator: string = apprenticeship.data()['creator'];
+      const apprenticeshipRef = apprenticeship.id;
       await admin
         .firestore()
         .collection('Users')

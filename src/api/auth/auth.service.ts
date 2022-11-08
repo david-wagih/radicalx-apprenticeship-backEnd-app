@@ -254,14 +254,14 @@ export class AuthService {
       const mode = authorizationHeader.split(' ')[0];
       const token = authorizationHeader.split(' ')[1];
       return {
-        'mode': mode,
-        'token': token,
-      }
+        mode: mode,
+        token: token,
+      };
     } else {
       return {
-        'mode': 'None',
-        'token': 'NA',
-      }
+        mode: 'None',
+        token: 'NA',
+      };
     }
   }
 }
