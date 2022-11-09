@@ -71,9 +71,9 @@ export class AuthService {
           email,
           password,
         );
-        if (userCredential.user.emailVerified == false) {
-          return await this.verifyEmail(auth.currentUser);
-        }
+        // if (userCredential.user.emailVerified == false) {
+        //   return await this.verifyEmail(auth.currentUser);
+        // }
         // Signed in and verified
         console.log('Logged in Successfully');
         const user: User = userCredential.user;
