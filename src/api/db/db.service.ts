@@ -31,9 +31,9 @@ export class DbService {
   async createApprenticeship(
     authorizationHeader: string,
     creator: string,
-    companyLogo: File,
+    companyLogo: Express.Multer.File[],
     companyDescription: string,
-    companyVideo: File,
+    companyVideo: Express.Multer.File[],
     apprenticeshipTitle: string,
     apprenticeshipDescription: string,
     teamType: string,
@@ -44,6 +44,7 @@ export class DbService {
     if (AuthService.prototype.checkUser(authorizationHeader)) {
       // todo: upload video and image and get reference
       const references = StorageService.prototype.uploadCompanyData(
+        authorizationHeader,
         apprenticeshipTitle,
         companyLogo,
         companyVideo,
@@ -104,9 +105,9 @@ export class DbService {
     authorizationHeader: string,
     apprenticeshipID: string,
     creator: string,
-    companyLogo: File,
+    companyLogo: Express.Multer.File[],
     companyDescription: string,
-    companyVideo: File,
+    companyVideo: Express.Multer.File[],
     apprenticeshipTitle: string,
     apprenticeshipDescription: string,
     teamType: string,
@@ -116,6 +117,7 @@ export class DbService {
   ) {
     if (AuthService.prototype.checkUser(authorizationHeader)) {
       const references = StorageService.prototype.uploadCompanyData(
+        authorizationHeader,
         apprenticeshipTitle,
         companyLogo,
         companyVideo,
@@ -199,7 +201,7 @@ export class DbService {
               .delete()
               .then(
                 () => {
-                  StorageService.prototype.removeCompanyData(apprenticeshipID);
+                  StorageService.prototype.removeCompanyData(authorizationHeader, apprenticeshipID);
                   admin
                     .firestore()
                     .collection('Users')

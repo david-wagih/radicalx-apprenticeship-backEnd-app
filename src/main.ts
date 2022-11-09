@@ -25,7 +25,7 @@ async function runApp() {
   const firebaseAdminConfig: firebaseAdmin.ServiceAccount = {
     projectId: configService.get<string>('project_id'),
     privateKey: configService.get<string>('private_key').replace(/\\n/g, '\n'),
-    clientEmail: configService.get<string>('client_email'),
+    clientEmail: configService.get<string>('client_email'), 
   };
 
   const firebaseOptions: firebaseAppOptions = {
@@ -42,6 +42,7 @@ async function runApp() {
   firebaseAdmin.initializeApp({
     credential: firebaseAdmin.credential.cert(firebaseAdminConfig),
     databaseURL: firebaseOptions.databaseURL,
+    storageBucket: configService.get<string>('storage_uri'),
   });
   firebaseAppInit(firebaseOptions);
 

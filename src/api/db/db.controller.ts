@@ -8,7 +8,10 @@ import {
   Delete,
   Request,
   Put,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { DbService } from './db.service';
 
 @Controller()
@@ -31,19 +34,25 @@ export class DbController {
 
   @Post('create_apprenticeship/:userID')
   @Header('content-type', 'application/json')
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'companyLogo' }, { name: 'companyVideo' }]),
+  )
   async createApprenticeship(
     @Request() request: Request,
     @Param() query: string[],
     @Body() apprenticeship_details: JSON,
+    @UploadedFiles()
+    files: {
+      companyLogo?: Express.Multer.File[];
+      companyVideo?: Express.Multer.File[];
+    },
   ) {
     const authorizationHeader: string = request.headers['authorization'];
     const creator = query['userID'];
     const apprenticeshipTitle = apprenticeship_details['apprenticeshipTitle'];
-    const companyLogo = apprenticeship_details['companyLogo'];
     const companyDescription = apprenticeship_details['companyDescription'];
     const apprenticeshipDescription =
       apprenticeship_details['apprenticeshipDescription'];
-    const companyVideo = apprenticeship_details['companyVideo'];
     const teamType = apprenticeship_details['teamType'];
     const teamRoles = apprenticeship_details['teamRoles'];
     const teamAdmins = apprenticeship_details['teamAdmins'];
@@ -51,9 +60,9 @@ export class DbController {
     return await this.dbService.createApprenticeship(
       authorizationHeader,
       creator,
-      companyLogo,
+      files['companyLogo'],
       companyDescription,
-      companyVideo,
+      files['companyVideo'],
       apprenticeshipTitle,
       apprenticeshipDescription,
       teamType,
@@ -65,20 +74,29 @@ export class DbController {
 
   @Put('update_apprenticeship/:apprenticeshipID')
   @Header('content-type', 'application/json')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'companyLogo'},
+      { name: 'companyVideo'},
+    ]),
+  )
   async updateApprenticeship(
     @Request() request: Request,
     @Param() query: string[],
     @Body() apprenticeship_details: JSON,
+    @UploadedFiles()
+    files: {
+      companyLogo?: Express.Multer.File[];
+      companyVideo?: Express.Multer.File[];
+    },
   ) {
     const authorizationHeader: string = request.headers['authorization'];
     const apprenticeshipID = query['apprenticeshipID'];
     const creator = query['userID'];
     const apprenticeshipTitle = apprenticeship_details['apprenticeshipTitle'];
-    const companyLogo = apprenticeship_details['companyLogo'];
     const companyDescription = apprenticeship_details['companyDescription'];
     const apprenticeshipDescription =
       apprenticeship_details['apprenticeshipDescription'];
-    const companyVideo = apprenticeship_details['companyVideo'];
     const teamType = apprenticeship_details['teamType'];
     const teamRoles = apprenticeship_details['teamRoles'];
     const teamAdmins = apprenticeship_details['teamAdmins'];
@@ -87,9 +105,9 @@ export class DbController {
       authorizationHeader,
       creator,
       apprenticeshipID,
-      companyLogo,
+      files['companyLogo'],
       companyDescription,
-      companyVideo,
+      files['companyVideo'],
       apprenticeshipTitle,
       apprenticeshipDescription,
       teamType,

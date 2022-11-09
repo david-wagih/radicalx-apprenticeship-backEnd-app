@@ -1,120 +1,110 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
+import { AuthService } from '../auth/auth.service';
+import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class StorageService {
-  uploadCompanyData(
+  async uploadCompanyData(
+    authorizationHeader: string,
     apprenticeshipID: string,
-    companyLogo: File,
-    companyVideo: File,
+    companyLogo: Express.Multer.File[],
+    companyVideo: Express.Multer.File[],
   ) {
-    return {
-      video: 'video',
-      logo: 'logo',
-    };
-    //todo: Add the upload feature and return the references
-    // const bucket = admin.storage().bucket();
-    // const imageOptions = {
-    //   public: true,
-    //   destination: 'Apprenticeships/' + apprenticeshipID,
-    //   gzip: true,
-    //   metadata: {
-    //     firebaseStorageDownloadTokens: uuidv4(),
-    //     contentType: 'image/png',
-    //     cacheControl: 'public, max-age:31536000',
-    //   },
-    // };
-    // const videoOptions = {
-    //   public: true,
-    //   destination: 'Apprenticeships/' + apprenticeshipID,
-    //   gzip: true,
-    //   metadata: {
-    //     firebaseStorageDownloadTokens: uuidv4(),
-    //     contentType: 'video/mp4',
-    //     cacheControl: 'public, max-age:31536000',
-    //   },
-    // };
-    // const logo = await bucket.upload(companyLogo.name, imageOptions);
-    // const video = await bucket.upload(companyVideo.name, videoOptions);
-    // console.log({
-    //   logo: 'Logo: ' + logo,
-    //   video: 'Video: ' + video,
-    // });
-    // return {
-    //   logo: logo,
-    //   video: video,
-    // };
-  }
-
-  updateCompanyData(
-    apprenticeshipID: string,
-    companyLogo: File,
-    companyVideo: File,
-  ) {
-    this.removeCompanyData(apprenticeshipID);
-    return this.uploadCompanyData(apprenticeshipID, companyLogo, companyVideo);
-  }
-  removeCompanyData(apprenticeshipID: string) {
-    console.log('Company Date Delete');
-    return 'Company Data Deleted';
-    const deleteFilesOptions = {
-      prefix: 'apprenticeships/' + apprenticeshipID + '/',
-    };
-    admin
-      .storage()
-      .bucket()
-      .deleteFiles(deleteFilesOptions)
-      .then(
-        () => {
-          console.log('Removed companyData successfully');
-          return 'Removed companyData successfully';
+    if (AuthService.prototype.checkUser(authorizationHeader)) {
+      const bucket = admin.storage().bucket();
+      const imageOptions = {
+        public: true,
+        destination:
+          'Apprenticeships/' +
+          apprenticeshipID +
+          '/Resources/' +
+          companyLogo[0]['originalname'],
+        //gzip: true,
+        metadata: {
+          contentType: companyLogo[0]['mimetype'],
+          firebaseStorageDownloadTokens: uuidv4(),
+          cacheControl: 'public, max-age:31536000',
         },
-        (reason) => {
-          console.error(reason);
+      };
+      const videoOptions = {
+        public: true,
+        destination:
+          'Apprenticeships/' +
+          apprenticeshipID +
+          '/Resources/' +
+          companyVideo[0]['originalname'],
+        //gzip: true,
+        metadata: {
+          contentType: companyVideo[0]['mimetype'],
+          firebaseStorageDownloadTokens: uuidv4(),
+          cacheControl: 'public, max-age:31536000',
         },
+      };
+      const logoRef = await bucket.upload(companyLogo[0]['path'], imageOptions);
+      fs.unlink(companyLogo[0]['path'], (err) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+      });
+      const videoRef = await bucket.upload(
+        companyVideo[0]['path'],
+        videoOptions,
       );
+      fs.unlink(companyVideo[0]['path'], (err) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        console.log('Files uploaded');
+        return {
+          logo: logoRef,
+          video: videoRef,
+        };
+      });
+    } else {
+      console.log('You need to login first');
+      return 'You need to login first';
+    }
   }
 
-  // async uploadFile(
-  //   companyName: string,
-  //   filePath: string,
-  //   fileName: string,
-  //   fileType: string,
-  // ) {
-  //   const bucket = admin.storage().bucket();
-  //   const uploadOptions = {
-  //     public: true,
-  //     destination: 'Companies/' + companyName + '/' + fileType + '/' + fileName,
-  //     gzip: true,
-  //     metadata: {
-  //       firebaseStorageDownloadTokens: uuidv4(),
-  //       contentType: 'image/png',
-  //       cacheControl: 'public, max-age:31536000',
-  //     },
-  //   };
+  async updateCompanyData(
+    authorizationHeader: string,
+    apprenticeshipID: string,
+    companyLogo: Express.Multer.File[],
+    companyVideo: Express.Multer.File[],
+  ) {
+    if (AuthService.prototype.checkUser(authorizationHeader)) {
+      this.removeCompanyData(authorizationHeader, apprenticeshipID);
+      return this.uploadCompanyData(
+        authorizationHeader,
+        apprenticeshipID,
+        companyLogo,
+        companyVideo,
+      );
+    } else {
+      console.log('You need to login first');
+      return 'You need to login first';
+    }
+  }
 
-  //   const storage = await bucket.upload(filePath, uploadOptions);
-  //   console.log(storage[0].metadata.mediaLink);
-  //   return storage[0].metadata.mediaLink;
-  // }
-
-  // uploadFileAndPassValidation(
-  //   @UploadedFile(
-  //     new ParseFilePipeBuilder()
-  //       .addFileTypeValidator({
-  //         fileType: 'jpeg',
-  //       })
-  //       .addMaxSizeValidator({
-  //         maxSize: 1000
-  //       })
-  //       .build({
-  //         errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
-  //       }),
-  //   )
-  //   file: Express.Multer.File,
-  // ) {
-  //   return {
-  //     file: file.buffer.toString(),
-  //   };
-  // }
+  async removeCompanyData(
+    authorizationHeader: string,
+    apprenticeshipID: string,
+  ) {
+    if (AuthService.prototype.checkUser(authorizationHeader)) {
+      const deleteFilesOptions = {
+        prefix: 'apprenticeships/' + apprenticeshipID + '/',
+        //gzip: true,
+        public: true,
+      };
+      await admin.storage().bucket().deleteFiles(deleteFilesOptions);
+      console.log('Removed company data  successfully');
+      return 'Removed company data successfully';
+    } else {
+      console.log('You need to login first');
+      return 'You need to login first';
+    }
+  }
 }
