@@ -28,21 +28,6 @@ export class DbController {
       userID,
     );
   }
-  @Get('data/:userID/:apprenticeshipID')
-  @Header('content-type', 'application/json')
-  async GetApprenticeship(
-    @Request() request: Request,
-    @Param() query: string[],
-  ) {
-    const authorizationHeader: string = request.headers['authorization'];
-    const userID = query['userID'];
-    const apprenticeshipID = query['apprenticeshipID'];
-    return await this.dbService.getApprenticeship(
-      authorizationHeader,
-      userID,
-      apprenticeshipID,
-    );
-  }
 
   @Post('create_apprenticeship/:userID')
   @Header('content-type', 'application/json')

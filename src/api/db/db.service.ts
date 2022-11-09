@@ -27,31 +27,6 @@ export class DbService {
       return 'User needs to log in first';
     }
   }
-  async getApprenticeship(
-    authorizationHeader: string,
-    userID: string,
-    apprenticeshipID: string,
-  ) {
-    if (AuthService.prototype.checkUser(authorizationHeader)) {
-      const apprenticeships = await admin
-        .firestore()
-        .collection('Apprenticeships')
-        .where('creator', 'in', [userID])
-        .get();
-      return apprenticeships.docs
-        .map((doc) => ({
-          apprenticeshipID: doc.id,
-          apprenticeshipData: doc.data(),
-        }))
-        .filter(
-          (apprenticeship) =>
-            apprenticeship.apprenticeshipID === apprenticeshipID,
-        );
-    } else {
-      console.log('User needs to log in first');
-      return 'User needs to log in first';
-    }
-  }
 
   async createApprenticeship(
     authorizationHeader: string,
